@@ -28,15 +28,17 @@ function animate() {
 
     // render stage
     context.putImageData(imageData, 0, 0);
-
-    // request new frame
-    requestAnimFrame(function() {
-        animate();
-    });
 }
 
 window.onload = function() {
-    animate();
+    var worker = new Worker('emulator.js');
+    worker.onmessage = function(event){
+        if(event.data){
+            console.log("Worker sent '" + event.data + "'");
+            console.dir(event);
+        }
+    }
+    worker.postMessage("");
 };
 
 function setPixelResize(imageData, x, y, r, g, b, a, rsize) {
