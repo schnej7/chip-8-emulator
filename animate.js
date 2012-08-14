@@ -9,7 +9,7 @@ window.requestAnimFrame = (function(callback) {
     };
 })();
 
-function animate() {
+function animate( pixelatedArray ) {
     var canvas = document.getElementById("myCanvas");
     var context = canvas.getContext("2d");
 
@@ -18,10 +18,10 @@ function animate() {
     imageData = context.createImageData(width, height);
 
     // update stage
-    setPixelResize(imageData, 0, 0, 255, 0, 0, 127, 100);
-    setPixelResize(imageData, 0, 1, 0, 255, 0, 127, 100);
-    setPixelResize(imageData, 1, 0, 0, 0, 255, 127, 100);
-    setPixelResize(imageData, 1, 1, 0, 0, 0, 127, 100);
+    for( q = 0; q < pixelatedArray.length; q++ ){
+        pixel = pixelatedArray[q];
+        setPixelResize(imageData, pixel.x, pixel.y, pixel.r, pixel.g, pixel.b, pixel.a, 100);
+    }
 
     // clear stage
     context.clearRect(0, 0, canvas.width, canvas.height);
@@ -34,9 +34,11 @@ window.onload = function() {
     var worker = new Worker('emulator.js');
     worker.onmessage = function(event){
         if(event.data){
-            console.log("Worker sent '" + event.data + "'");
-            console.dir(event);
+            requestAnimFrame( function(){
+                animate( event.data.data )
+            });
         }
+        worker.postMessage("");
     }
     worker.postMessage("");
 };
