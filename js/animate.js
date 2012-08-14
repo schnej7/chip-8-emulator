@@ -31,7 +31,7 @@ function animate( pixelatedArray ) {
 }
 
 window.onload = function() {
-    var worker = new Worker('emulator.js');
+    var worker = new Worker('js/emulator.js');
     worker.onmessage = function(event){
         if(event.data){
             requestAnimFrame( function(){
