@@ -20,7 +20,7 @@ function animate( pixelatedArray ) {
     // update stage
     for( q = 0; q < pixelatedArray.length; q++ ){
         pixel = pixelatedArray[q];
-        setPixelResize(imageData, pixel.x, pixel.y, pixel.r, pixel.g, pixel.b, pixel.a, 100);
+        setPixelResize(imageData, pixel.x, pixel.y, pixel.r, pixel.g, pixel.b, pixel.a, 4);
     }
 
     // clear stage
@@ -30,17 +30,42 @@ function animate( pixelatedArray ) {
     context.putImageData(imageData, 0, 0);
 }
 
-window.onload = function() {
-    var worker = new Worker('js/emulator.js');
+var worker;
+
+function newGame(){
+    worker = new Worker('js/emulator.js');
     worker.onmessage = function(event){
         if(event.data){
+            if( event.data == "end" ){
+                newGame();
+            }
             requestAnimFrame( function(){
                 animate( event.data.data )
             });
         }
-        worker.postMessage("");
     }
-    worker.postMessage("");
+    worker.postMessage("start");
+}
+
+window.onload = function() {
+    newGame();
+};
+
+document.onkeypress = function(evt){
+    evt = evt || window.event;
+    key = evt.keyCode;
+    if( key == 119 ){
+        worker.postMessage("w");
+    }
+    else if( key == 97 ){
+        worker.postMessage("a");
+    }
+    else if( key == 115 ){
+        worker.postMessage("s");
+    }
+    else if( key == 100 ){
+        worker.postMessage("d");
+    }
 };
 
 function setPixelResize(imageData, x, y, r, g, b, a, rsize) {
