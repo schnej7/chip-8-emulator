@@ -22,6 +22,8 @@ var opcode;
 // 0x200-0xFFF - Program ROM and work RAM
 var memory = new ArrayBuffer(4096);
 
+var memoryView = new Uint8Array(memory, 0);
+
 //Registers
 var V = [];
 
@@ -72,11 +74,25 @@ function emulateCycle(){
 }
 
 function main(){
-    console.log("here");
     memoryInit();
 
-    //Load game
+    //Emulation will begin once the game is loaded
+}
 
+//Load the game into the emulator memory
+function loadGame(){
+    for( i = 0; i < romFile.byteLength; i++ ){
+        memoryView[0x200 + i] = romFile[i];
+    }
+}
+
+function gameLoaded(){
+
+    loadGame();
+    for( i = 0; i < memory.byteLength; i++ ){
+        console.log( memoryView[i] );
+    }
+    console.log('beginning emulation');
     //Emulation loop
     //while(true){
         //Emulate one cycle
@@ -87,4 +103,3 @@ function main(){
         //Get input
     //}
 }
-

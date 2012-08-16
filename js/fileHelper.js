@@ -22,7 +22,8 @@ function handleFileSelect(evt) {
 
     fileReader.onload = (function(theFile) {
         return function(e) {
-            romFile = e.target.result;
+            romFile = new Uint8Array(e.target.result, 0);
+            gameLoaded();
         };
     })(file);
 
