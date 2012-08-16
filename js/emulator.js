@@ -51,9 +51,40 @@ function memoryInit(){
     for( i = 0; i < 16; i++ ){
         V.push( new ArrayBuffer(8) );
     }
+    //Applications are expected to be loaded at 0x200
+    pc = 0x200;
+    
+    //Clear memory
+    opcode = 0;
+    sp = 0;
+    I = 0;
+
+    //Load Fontset
+}
+
+function emulateCycle(){
+    //Fetch opcode, instructions are 2 bytes long
+    opcode = memory[pc] << 8 | memory[pc+1];
+    //Decode opcode
+    //Execute opcode
+
+    //Update timers
 }
 
 function main(){
     console.log("here");
     memoryInit();
+
+    //Load game
+
+    //Emulation loop
+    //while(true){
+        //Emulate one cycle
+        emulateCycle();
+
+        //Draw to the screen
+
+        //Get input
+    //}
 }
+

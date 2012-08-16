@@ -1,11 +1,15 @@
 <html>
     <head>
         <script src='js/emulator.js'></script>
+        <script src='js/fileHelper.js'></script>
     </head>
     <body>
+        <input type="file" id="files" name="file" />
+        <output id="fileName"></output>
         <script>
             onload = function(){
                 main();
+                enableFileSelection();
             }
         </script>
     </body>
