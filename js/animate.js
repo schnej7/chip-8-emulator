@@ -53,7 +53,7 @@ window.onload = function() {
 
 document.onkeypress = function(evt){
     evt = evt || window.event;
-    key = evt.keyCode;
+    key = evt.keyCode || evt.charCode;
     if( key == 119 ){
         worker.postMessage("w");
     }
