@@ -219,6 +219,12 @@ function decodeAndExecute( opcode ){
         break;
 
         case 0x9000:    // Skips the next instruction if VX doesn't equal VY
+            if( V[ (0x0F00 & opcode) >> 8 ] != V[ (0x00F0 & opcode) >> 4 ] ){
+                pc += 4;
+            }
+            else{
+                pc += 2;
+            }
         break;
 
         case 0xA000:    // ANNN: sets I to the address NNN
@@ -227,9 +233,12 @@ function decodeAndExecute( opcode ){
         break;
 
         case 0xB000:    // BNNN: Jumps to the address NNN plus V0
+            pc = (opcode & 0x0FFF) + V[ 0 ];
         break;
 
-        case 0xC000:    // CXNN: Sets VX to a random number and NN
+        case 0xC000:    // CXNN: Sets VX to a random number & NN
+            V[ (0x0F00 & opcode) >> 8 ] = ( Math.random() * 0x80 ) & ( opcode & 0x00FF );
+            pc += 2;
         break;
 
         case 0xD000:    // DXYN: Draws a sprite at coordinate (VX, VY) that has a width of 8 pixels and a height of N pixels.
@@ -256,6 +265,8 @@ function decodeAndExecute( opcode ){
             switch( opcode & 0x00FF ){
 
                 case 0x0007:    // FX07: Sets VX to the value of the delay timer
+                    V[ (0x0F00 & opcode) >> 8 ] = delay_timer;
+                    pc += 2;
                 break;
 
                 case 0x000A:    // FX0A: A key press is awaited, and then stored in VX
@@ -265,12 +276,18 @@ function decodeAndExecute( opcode ){
                 break;
 
                 case 0x0018:    // FX19: Sets the sound timer to VX
+                    delay_timer = V[ (0x0F00 & opcode) >> 8 ];
+                    pc += 2;
                 break;
 
                 case 0x001E:    // FX1E: Adds VX to I
+                    I += V[ (0x0F00 & opcode) >> 8 ];
+                    pc += 2;
                 break;
 
                 case 0x0029:    // FX29: Sets I to the location of the sprite for the character in VX. Characters 0-F (in hexadecimal) are represented by a 4x5 font
+                    I = 0x50 + ( V[ (0x0F00 & opcode) >> 8 ] * 5 );
+                    pc += 2;
                 break;
 
                 case 0x0033:    // FX33: Stores the Binary-coded decimal representation of VX, with 
@@ -280,9 +297,19 @@ function decodeAndExecute( opcode ){
                 break;
 
                 case 0x0055:    // FX55: Stores V0 to VX in memory starting at address I
+                    X = (opcode & 0x0F00) >> 8;
+                    for( i = 0; i < X; i++ ){
+                        memoryView[I+i] = V[i];
+                    }
+                    pc += 2;
                 break;
 
                 case 0x0065:    // FX65: Fills V0 to VX with values from memory starting at address I
+                    X = (opcode & 0x0F00) >> 8;
+                    for( i = 0; i < X; i++ ){
+                        V[i] = memoryView[I+i];
+                    }
+                    pc += 2;
                 break;
 
                 default:
