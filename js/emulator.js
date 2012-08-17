@@ -38,6 +38,55 @@ self.onmessage = function(event){
     else if(event.data == "stop"){
         self.close();
     }
+
+    else if(event.data == "1"){
+        key[0x1] = key[0x1] ^ 0x1;
+    }
+    else if(event.data == "2"){
+        key[0x2] = key[0x2] ^ 0x1;
+    }
+    else if(event.data == "3"){
+        key[0x3] = key[0x3] ^ 0x1;
+    }
+    else if(event.data == "q"){
+        key[0x4] = key[0x4] ^ 0x1;
+    }
+    else if(event.data == "w"){
+        key[0x5] = key[0x5] ^ 0x1;
+    }
+    else if(event.data == "e"){
+        key[0x6] = key[0x6] ^ 0x1;
+    }
+    else if(event.data == "a"){
+        key[0x7] = key[0x7] ^ 0x1;
+    }
+    else if(event.data == "s"){
+        key[0x8] = key[0x8] ^ 0x1;
+    }
+    else if(event.data == "d"){
+        key[0x9] = key[0x9] ^ 0x1;
+    }
+    else if(event.data == "z"){
+        key[0xA] = key[0xA] ^ 0x1;
+    }
+    else if(event.data == "x"){
+        key[0x0] = key[0x0] ^ 0x1;
+    }
+    else if(event.data == "c"){
+        key[0xB] = key[0xB] ^ 0x1;
+    }
+    else if(event.data == "4"){
+        key[0xC] = key[0xC] ^ 0x1;
+    }
+    else if(event.data == "r"){
+        key[0xD] = key[0xD] ^ 0x1;
+    }
+    else if(event.data == "f"){
+        key[0xE] = key[0xE] ^ 0x1;
+    }
+    else if(event.data == "v"){
+        key[0xF] = key[0xF] ^ 0x1;
+    }
 };
 
 //The current opcode
@@ -55,30 +104,30 @@ var memoryView = new Uint8Array(memory, 0);
 var V = [];
 
 //Index register (upper 4 bits are unused)
-var I = new ArrayBuffer(2);
+var I;
 
 //Program counter (upper 4 bits are unused)
-var pc = new ArrayBuffer(2);
+var pc;
 
-//Pixel Display 64 x 32
-var pixels = [64 * 32];
+//Pixel Display
+var pixels = [];
 
 //Timers which count down from X to 0 at 60hz
 var delay_timer;
 var sound_timer;
 
 //16 frame stack
-var stack = [16];
+var stack = [];
 //Stack pointer
 var sp;
 
 //Key state
-var key = [16];
+var key = [];
 
 function memoryInit(){
     //Init 16 8-bit registers
     for( i = 0; i < 16; i++ ){
-        V.push( new ArrayBuffer(8) );
+        V[i] = 0;
     }
     //Applications are expected to be loaded at 0x200
     pc = 0x200;
@@ -88,8 +137,27 @@ function memoryInit(){
     sp = 0;
     I = 0;
 
+    //Set all pixels to 0
+    for( i = 0; i < 64 * 32; i++ ){
+        pixels[i] = 0;
+    }
+
+    //Set all keys to unpressed
+    for( i = 0; i < 16; i++ ){
+        key[i] = 0;
+    }
+
     //Load Fontset
     loadFontset();
+}
+
+function display(){
+    render = new Array();
+    for( i = 0; i < pixels.length; i++ ){
+        alpha = pixels[i] ? 0 : 255;
+        render.push({"x": (i % 64), "y": (i - (i % 64)) / 64, "r": 0, "g": 0, "b": 0, "a": alpha});
+    }
+    animate( render );
 }
 
 function decodeAndExecute( opcode ){
@@ -99,10 +167,14 @@ function decodeAndExecute( opcode ){
             switch( opcode & 0x000F ){
 
                 case 0x0000:    // 0x00E0: clear the screen
-                    //TODO: opcode not yet implemented
+                    for( i = 0; i < pixels.length; i++ ){
+                        pixels[i] = 0;
+                    }
+                    pc += 2;
                 break;
 
                 case 0x000E:    // 0x00EE: return from a subroutine
+                    console.log("sp == " + sp);
                     pc = stack[--sp];
                 break;
 
@@ -121,7 +193,7 @@ function decodeAndExecute( opcode ){
         break;
 
         case 0x3000:    // 3XNN: Skips the next instrouction if VX equals NN
-            if( V[ (0x0F00 & opcode) >> 8 ] == 0x00FF & opcode ){
+            if( V[ (0x0F00 & opcode) >> 8 ] == (0x00FF & opcode) ){
                 pc += 4;
             }
             else{
@@ -130,7 +202,7 @@ function decodeAndExecute( opcode ){
         break;
 
         case 0x4000:    // 4XNN: Skips the next instrouction if VX does not equal NN
-            if( V[ (0x0F00 & opcode) >> 8 ] != 0x00FF & opcode ){
+            if( V[ (0x0F00 & opcode) >> 8 ] != (0x00FF & opcode) ){
                 pc += 4;
             }
             else{
@@ -175,7 +247,7 @@ function decodeAndExecute( opcode ){
                 break;
 
                 case 0x0003:    // 8XY3: Sets VX to VX XOR VY
-                    V[ (0x0F00 & opcode) >> 8 ] = V[ (0x0F00 & opcode) >> 8 ] XOR V[ (0x00F0 & opcode) >> 4 ];
+                    V[ (0x0F00 & opcode) >> 8 ] = V[ (0x0F00 & opcode) >> 8 ] ^ V[ (0x00F0 & opcode) >> 4 ];
                     pc += 2;
                 break;
 
@@ -246,18 +318,49 @@ function decodeAndExecute( opcode ){
                         //       Each row of 8 pixels is read as bit-coded (with the most significant bit of each byte displayed on the left) starting from memory location I;
                         //       I value doesn't change after the execution of this instruction. 
                         //       As described above, VF is set to 1 if any screen pixels are flipped from set to unset when the sprite is drawn, and to 0 if that doesn't happen.
-            //TODO: opcode not yet implemented
+            X = V[(opcode & 0x0F00) >> 8];
+            Y = V[(opcode & 0x00F0) >> 4];
+            height = opcode & 0x000F;
+
+            V[0xF] = 0;
+            for( hline = 0; hline < height; hline++ ){
+                spriteRow = memoryView[ I + hline ];
+                for( vline = 0; vline < 8; vline++ ){
+                    //If the sprite specifies a difference at this pixel
+                    if( spriteRow & (0x80 >> vline) ){
+                        //Check if the bit is on, then flip it
+                        if( pixels[ (Y + yline) * 64 + X + xline ] ){
+                            V[0xF] = 1;
+                            pixels[ (Y + yline) * 64 + X + xline ] = 0;
+                        }
+                        else{
+                            pixels[ (Y + yline) * 64 + X + xline ] = 1;
+                        }
+                    }
+                }
+            }
+            pc += 2;
         break;
 
         case 0xE000:    // E---: more decoding
             switch( opcode & 0x00FF ){
 
                 case 0x009E:    // EX9E: Skips the next instruction if the key stored in VX is pressed
-                    //TODO: opcode not yet implemented
+                    if( key[ V[ (opcode & 0x0F00) >> 8 ] ] ){
+                        pc += 4;
+                    }
+                    else{
+                        pc += 2;
+                    }
                 break
 
                 case 0x00A1:    // EXA1: Skips the next instruction if the key stored in VX isn't pressed
-                    //TODO: opcode not yet implemented
+                    if( !key[ V[ (opcode & 0x0F00) >> 8 ] ] ){
+                        pc += 4;
+                    }
+                    else{
+                        pc += 2;
+                    }
                 break;
 
                 default:
@@ -275,6 +378,7 @@ function decodeAndExecute( opcode ){
 
                 case 0x000A:    // FX0A: A key press is awaited, and then stored in VX
                     //TODO: opcode not yet implemented
+                    pc += 2;
                 break;
 
                 case 0x0015:    // FX15: Sets the delay timer to VX
@@ -300,6 +404,10 @@ function decodeAndExecute( opcode ){
                                 //       the most significant of three digits at the address in I, 
                                 //       the middle digit at I plus 1, 
                                 //       and the least significant digit at I plus 2
+                    memory[I]     = Math.floor(V[(opcode & 0x0F00) >> 8] / 100);
+                    memory[I + 1] = Math.floor((V[(opcode & 0x0F00) >> 8] / 10)) % 10;
+                    memory[I + 2] = (V[(opcode & 0x0F00) >> 8] % 100) % 10;
+                    pc += 2;
                 break;
 
                 case 0x0055:    // FX55: Stores V0 to VX in memory starting at address I
@@ -330,8 +438,12 @@ function decodeAndExecute( opcode ){
 
 function emulateCycle(){
     //Fetch opcode, instructions are 2 bytes long
-    opcode = memory[pc] << 8 | memory[pc+1];
+    opcode = memoryView[pc] << 8 | memoryView[pc+1];
+
+    console.log("memory[" + pc + "] == " + opcode.toString(16));
     //Decode and execute opcode
+    decodeAndExecute( opcode );
+    console.log("opcode executed");
 
     //Update timers
     if( delay_timer > 0 ){
@@ -340,6 +452,14 @@ function emulateCycle(){
     if( sound_timer > 0 ){
         sound_timer--;
     }
+
+    //Display
+    display();
+    
+    //Get input
+
+    //Execute next instruction
+    setTimeout( emulateCycle, 160 );
 }
 
 function main(){
@@ -355,20 +475,13 @@ function loadGame(){
     }
 }
 
-function gameLoaded(){
+function gameSelected(){
 
+    //Load the game into memory
     loadGame();
-    for( i = 0; i < memory.byteLength; i++ ){
-        console.log( memoryView[i] );
-    }
     console.log('beginning emulation');
+
     //Emulation loop
-    //while(true){
-        //Emulate one cycle
-        emulateCycle();
+    emulateCycle();
 
-        //Draw to the screen
-
-        //Get input
-    //}
 }

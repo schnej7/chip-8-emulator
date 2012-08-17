@@ -20,7 +20,7 @@ function animate( pixelatedArray ) {
     // update stage
     for( q = 0; q < pixelatedArray.length; q++ ){
         pixel = pixelatedArray[q];
-        setPixelResize(imageData, pixel.x, pixel.y, pixel.r, pixel.g, pixel.b, pixel.a, 4);
+        setPixelResize(imageData, pixel.x, pixel.y, pixel.r, pixel.g, pixel.b, pixel.a, 8);
     }
 
     // clear stage
@@ -33,6 +33,7 @@ function animate( pixelatedArray ) {
 var worker;
 
 function newGame(){
+    /*
     worker = new Worker('js/emulator.js');
     worker.onmessage = function(event){
         if(event.data){
@@ -45,15 +46,21 @@ function newGame(){
         }
     }
     worker.postMessage("start");
+    */
+    console.log("starting");
+    main();
 }
 
 window.onload = function() {
+    enableFileSelection();
     newGame();
 };
 
 document.onkeypress = function(evt){
     evt = evt || window.event;
     key = evt.keyCode || evt.charCode;
+    //TODO: put the right keys in here
+    /*
     if( key == 119 ){
         worker.postMessage("w");
     }
@@ -66,6 +73,7 @@ document.onkeypress = function(evt){
     else if( key == 100 ){
         worker.postMessage("d");
     }
+    */
 };
 
 function setPixelResize(imageData, x, y, r, g, b, a, rsize) {
