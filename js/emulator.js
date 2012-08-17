@@ -102,6 +102,7 @@ function decodeAndExecute( opcode ){
                 break;
 
                 case 0x000E:    // 0x00EE: return from a subroutine
+                    pc = stack[--sp];
                 break;
 
                 default:
@@ -110,53 +111,106 @@ function decodeAndExecute( opcode ){
         break;
 
         case 0x1000:    // 1NNN: Jumps to address NNN
+            pc = 0x0FFF & opcode;
         break
 
         case 0x2000:    // 2NNN: Calls subroutine at address NNN
+            stack[sp++] = pc;
+            pc = 0x0FFF & opcode;
         break;
 
         case 0x3000:    // 3XNN: Skips the next instrouction if VX equals NN
+            if( V[ (0x0F00 & opcode) >> 8 ] == 0x00FF & opcode ){
+                pc += 4;
+            }
+            else{
+                pc += 2;
+            }
         break;
 
         case 0x4000:    // 4XNN: Skips the next instrouction if VX does not equal NN
+            if( V[ (0x0F00 & opcode) >> 8 ] != 0x00FF & opcode ){
+                pc += 4;
+            }
+            else{
+                pc += 2;
+            }
         break;
 
         case 0x5000:    // 5XY0: Skips the next instrouction if VX equals VY
+            if( V[ (0x0F00 & opcode) >> 8 ] == V[ (0x00F0 & opcode) >> 4 ] ){
+                pc += 4;
+            }
+            else{
+                pc += 2;
+            }
         break;
 
         case 0x6000:    // 6XNN: Sets VX to NN
+            V[ (0x0F00 & opcode) >> 8 ] = 0x00FF & opcode;
+            pc += 2;
         break;
 
         case 0x7000:    // 7XNN: Adds NN to VX
+            V[ (0x0F00 & opcode) >> 8 ] += 0x00FF & opcode;
+            pc += 2;
         break;
 
         case 0x8000:    // 8---: more decoding
             switch( opcode & 0x000F ){
                 case 0x0000:    // 8XY0: Sets VX to the value of VY
+                    V[ (0x0F00 & opcode) >> 8 ] = V[ (0x00F0 & opcode) >> 4 ];
+                    pc += 2;
                 break;
 
                 case 0x0001:    // 8XY1: Sets VX to VX | VY
+                    V[ (0x0F00 & opcode) >> 8 ] = V[ (0x0F00 & opcode) >> 8 ] | V[ (0x00F0 & opcode) >> 4 ];
+                    pc += 2;
                 break;
 
                 case 0x0002:    // 8XY2: Sets VX to VX & VY
+                    V[ (0x0F00 & opcode) >> 8 ] = V[ (0x0F00 & opcode) >> 8 ] & V[ (0x00F0 & opcode) >> 4 ];
+                    pc += 2;
                 break;
 
                 case 0x0003:    // 8XY3: Sets VX to VX XOR VY
+                    V[ (0x0F00 & opcode) >> 8 ] = V[ (0x0F00 & opcode) >> 8 ] XOR V[ (0x00F0 & opcode) >> 4 ];
+                    pc += 2;
                 break;
 
                 case 0x0004:    // 8XY4: Adds VY to VX. VF is set to 1 when there's a carry, and to 0 when there isn't
+                    V[ (0x0F00 & opcode) >> 8 ] = V[ (0x0F00 & opcode) >> 8 ] + V[ (0x00F0 & opcode) >> 4 ];
+                    V[ 0xF ] = ( V[ (0x0F00 & opcode) >> 8 ] & 0x100 ) >> 9;
+                    V[ (0x0F00 & opcode) >> 8 ] = V[ (0x0F00 & opcode) >> 8 ] & 0x00FF;
+                    pc += 2;
                 break;
 
                 case 0x0005:    // 8XY5: VY is subtracted from VX. VF is set to 0 when there's a borrow, and 1 when there isn't
+                    V[ (0x0F00 & opcode) >> 8 ] += 0x100;
+                    V[ (0x0F00 & opcode) >> 8 ] = V[ (0x0F00 & opcode) >> 8 ] - V[ (0x00F0 & opcode) >> 4 ];
+                    V[ 0xF ] = (V[ (0x0F00 & opcode) >> 8 ] & 0x100) >> 9;
+                    V[ (0x0F00 & opcode) >> 8 ] = V[ (0x0F00 & opcode) >> 8 ] & 0x00FF;
+                    pc += 2;
                 break;
 
                 case 0x0006:    // 8XY6: Shifts VX right by one. VF is set to the value of the least significant bit of VX before the shift
+                    V[ 0xF ] = V[ (0x0F00 & opcode) >> 8 ] & 0x1;
+                    V[ (0x0F00 & opcode) >> 8 ] = V[ (0x0F00 & opcode) >> 8 ] >> 1;
+                    pc += 2;
                 break;
 
                 case 0x0007:    // 8XY7: Sets VX to VY minus VX. VF is set to 0 when there's a borrow, and 1 when there isn't
+                    V[ (0x00F0 & opcode) >> 4 ] += 0x100;
+                    V[ (0x0F00 & opcode) >> 8 ] = V[ (0x00F0 & opcode) >> 4 ] - V[ (0x0F00 & opcode) >> 8 ];
+                    V[ 0xF ] = (V[ (0x00F0 & opcode) >> 4 ] & 0x100) >> 9;
+                    V[ (0x00F0 & opcode) >> 4 ] = V[ (0x00F0 & opcode) >> 4 ] & 0x00FF;
+                    pc += 2;
                 break;
 
                 case 0x000E:    // 8XYE: Shifts VX left by one. VF is set to the value of the most significant bit of VX before the shift
+                    V[ 0xF ] = V[ (0x0F00 & opcode) >> 8 ] & 0x80;
+                    V[ (0x0F00 & opcode) >> 8 ] = V[ (0x0F00 & opcode) >> 8 ] << 1;
+                    pc += 2;
                 break;
 
                 default:
