@@ -99,6 +99,7 @@ function decodeAndExecute( opcode ){
             switch( opcode & 0x000F ){
 
                 case 0x0000:    // 0x00E0: clear the screen
+                    //TODO: opcode not yet implemented
                 break;
 
                 case 0x000E:    // 0x00EE: return from a subroutine
@@ -245,15 +246,18 @@ function decodeAndExecute( opcode ){
                         //       Each row of 8 pixels is read as bit-coded (with the most significant bit of each byte displayed on the left) starting from memory location I;
                         //       I value doesn't change after the execution of this instruction. 
                         //       As described above, VF is set to 1 if any screen pixels are flipped from set to unset when the sprite is drawn, and to 0 if that doesn't happen.
+            //TODO: opcode not yet implemented
         break;
 
         case 0xE000:    // E---: more decoding
             switch( opcode & 0x00FF ){
 
                 case 0x009E:    // EX9E: Skips the next instruction if the key stored in VX is pressed
+                    //TODO: opcode not yet implemented
                 break
 
                 case 0x00A1:    // EXA1: Skips the next instruction if the key stored in VX isn't pressed
+                    //TODO: opcode not yet implemented
                 break;
 
                 default:
@@ -270,13 +274,15 @@ function decodeAndExecute( opcode ){
                 break;
 
                 case 0x000A:    // FX0A: A key press is awaited, and then stored in VX
+                    //TODO: opcode not yet implemented
                 break;
 
                 case 0x0015:    // FX15: Sets the delay timer to VX
+                    delay_timer = V[ (0x0F00 & opcode) >> 8 ];
                 break;
 
                 case 0x0018:    // FX19: Sets the sound timer to VX
-                    delay_timer = V[ (0x0F00 & opcode) >> 8 ];
+                    sound_timer = V[ (0x0F00 & opcode) >> 8 ];
                     pc += 2;
                 break;
 
@@ -328,6 +334,12 @@ function emulateCycle(){
     //Decode and execute opcode
 
     //Update timers
+    if( delay_timer > 0 ){
+        delay_timer--;
+    }
+    if( sound_timer > 0 ){
+        sound_timer--;
+    }
 }
 
 function main(){
