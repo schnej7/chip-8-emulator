@@ -382,12 +382,12 @@ function decodeAndExecute( opcode ){
                     //If the sprite specifies a difference at this pixel
                     if( spriteRow & (0x80 >> vline) ){
                         //Check if the bit is on, then flip it
-                        if( pixels[ (Y + hline) * 64 + X + vline ] ){
+                        if( pixels[ ((Y + hline) * 64) %( 64*32 ) + (X + vline) % 64 ] ){
                             V[0xF] = 1;
-                            pixels[ (Y + hline) * 64 + X + vline ] = 0;
+                            pixels[ ((Y + hline) * 64) %( 64*32 ) + (X + vline) % 64 ] = 0;
                         }
                         else{
-                            pixels[ (Y + hline) * 64 + X + vline ] = 1;
+                            pixels[ ((Y + hline) * 64) %( 64*32 ) + (X + vline) % 64 ] = 1;
                         }
                     }
                 }
@@ -455,6 +455,12 @@ function decodeAndExecute( opcode ){
                 case 0x001E:    // FX1E: Adds VX to I
                     //console.log("I = I + VX");
                     I += V[ (0x0F00 & opcode) >> 8 ];
+                    if( I & 0xF000 ){
+                        V[ 0xF ] = 1;
+                    }
+                    else{
+                        V[ 0xF ] = 0;
+                    }
                     I = I & 0x0FFF;
                     pc += 2;
                 break;
