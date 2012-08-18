@@ -296,7 +296,7 @@ function decodeAndExecute( opcode ){
                 case 0x0004:    // 8XY4: Adds VY to VX. VF is set to 1 when there's a carry, and to 0 when there isn't
                     //console.log("VX += VX + VY");
                     V[ (0x0F00 & opcode) >> 8 ] = V[ (0x0F00 & opcode) >> 8 ] + V[ (0x00F0 & opcode) >> 4 ];
-                    V[ 0xF ] = ( V[ (0x0F00 & opcode) >> 8 ] & 0x100 ) >> 9;
+                    V[ 0xF ] = ( V[ (0x0F00 & opcode) >> 8 ] & 0x100 ) >> 8;
                     V[ (0x0F00 & opcode) >> 8 ] = V[ (0x0F00 & opcode) >> 8 ] & 0x00FF;
                     pc += 2;
                 break;
@@ -305,7 +305,7 @@ function decodeAndExecute( opcode ){
                     //console.log("VX += VX - VY");
                     V[ (0x0F00 & opcode) >> 8 ] += 0x100;
                     V[ (0x0F00 & opcode) >> 8 ] = V[ (0x0F00 & opcode) >> 8 ] - V[ (0x00F0 & opcode) >> 4 ];
-                    V[ 0xF ] = (V[ (0x0F00 & opcode) >> 8 ] & 0x100) >> 9;
+                    V[ 0xF ] = (V[ (0x0F00 & opcode) >> 8 ] & 0x100) >> 8;
                     V[ (0x0F00 & opcode) >> 8 ] = V[ (0x0F00 & opcode) >> 8 ] & 0x00FF;
                     pc += 2;
                 break;
@@ -321,7 +321,7 @@ function decodeAndExecute( opcode ){
                     //console.log("VX += VY - VX");
                     V[ (0x00F0 & opcode) >> 4 ] += 0x100;
                     V[ (0x0F00 & opcode) >> 8 ] = V[ (0x00F0 & opcode) >> 4 ] - V[ (0x0F00 & opcode) >> 8 ];
-                    V[ 0xF ] = (V[ (0x00F0 & opcode) >> 4 ] & 0x100) >> 9;
+                    V[ 0xF ] = (V[ (0x00F0 & opcode) >> 4 ] & 0x100) >> 8;
                     V[ (0x00F0 & opcode) >> 4 ] = V[ (0x00F0 & opcode) >> 4 ] & 0x00FF;
                     pc += 2;
                 break;
@@ -485,7 +485,7 @@ function decodeAndExecute( opcode ){
                 case 0x0055:    // FX55: Stores V0 to VX in memory starting at address I
                     //console.log("store all registers in memory");
                     X = (opcode & 0x0F00) >> 8;
-                    for( i = 0; i < X; i++ ){
+                    for( i = 0; i <= X; i++ ){
                         memoryView[I+i] = V[i];
                     }
                     pc += 2;
@@ -494,7 +494,7 @@ function decodeAndExecute( opcode ){
                 case 0x0065:    // FX65: Fills V0 to VX with values from memory starting at address I
                     //console.log("get all registers from memory");
                     X = (opcode & 0x0F00) >> 8;
-                    for( i = 0; i < X; i++ ){
+                    for( i = 0; i <= X; i++ ){
                         V[i] = memoryView[I+i];
                     }
                     pc += 2;
@@ -514,7 +514,7 @@ function emulateCycle(){
     //Fetch opcode, instructions are 2 bytes long
     opcode = memoryView[pc] << 8 | memoryView[pc+1];
 
-    console.log("memory[" + pc.toString(16) + "] == " + opcode.toString(16));
+    //console.log("memory[" + pc.toString(16) + "] == " + opcode.toString(16));
     //Decode and execute opcode
     decodeAndExecute( opcode );
 

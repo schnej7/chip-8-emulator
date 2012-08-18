@@ -109,7 +109,7 @@ document.onkeyup = function(evt){
     }
 };
 
-document.onkeydown = function(evt){
+function keydown(evt){
     evt = evt || window.event;
     key = evt.keyCode || evt.charCode;
     if(key == 49){
@@ -160,6 +160,9 @@ document.onkeydown = function(evt){
     else if(key == 118 || key == 86){
         keys[0xF] = 0x1;
     }
+    else if(key == 112 || key == 80){
+        paused = true;
+    }
 
     //TODO: put the right keys in here
     /*
@@ -177,6 +180,8 @@ document.onkeydown = function(evt){
     }
     */
 };
+
+document.onkeydown = keydown;
 
 function setPixelResize(imageData, x, y, r, g, b, a, rsize) {
     for( i = 0; i < rsize; i++ ){
