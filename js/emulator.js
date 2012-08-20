@@ -28,67 +28,6 @@ var chip8_fontset = [
   0xF0, 0x80, 0xF0, 0x80, 0x80  // F
 ];
 
-//Recieves messages from the font end
-self.onmessage = function(event){
-    //Begin emulation
-    if(event.data == "start"){
-        main();
-    }
-    //Kill the emulator
-    else if(event.data == "stop"){
-        self.close();
-    }
-
-    else if(event.data == "1"){
-        keys[0x1] = key[0x1] ^ 0x1;
-    }
-    else if(event.data == "2"){
-        keys[0x2] = key[0x2] ^ 0x1;
-    }
-    else if(event.data == "3"){
-        keys[0x3] = key[0x3] ^ 0x1;
-    }
-    else if(event.data == "q"){
-        keys[0x4] = key[0x4] ^ 0x1;
-    }
-    else if(event.data == "w"){
-        keys[0x5] = key[0x5] ^ 0x1;
-    }
-    else if(event.data == "e"){
-        keys[0x6] = key[0x6] ^ 0x1;
-    }
-    else if(event.data == "a"){
-        keys[0x7] = key[0x7] ^ 0x1;
-    }
-    else if(event.data == "s"){
-        keys[0x8] = key[0x8] ^ 0x1;
-    }
-    else if(event.data == "d"){
-        keys[0x9] = key[0x9] ^ 0x1;
-    }
-    else if(event.data == "z"){
-        keys[0xA] = key[0xA] ^ 0x1;
-    }
-    else if(event.data == "x"){
-        keys[0x0] = key[0x0] ^ 0x1;
-    }
-    else if(event.data == "c"){
-        keys[0xB] = key[0xB] ^ 0x1;
-    }
-    else if(event.data == "4"){
-        keys[0xC] = key[0xC] ^ 0x1;
-    }
-    else if(event.data == "r"){
-        keys[0xD] = key[0xD] ^ 0x1;
-    }
-    else if(event.data == "f"){
-        keys[0xE] = key[0xE] ^ 0x1;
-    }
-    else if(event.data == "v"){
-        keys[0xF] = key[0xF] ^ 0x1;
-    }
-};
-
 //The current opcode
 var opcode;
 
@@ -141,9 +80,11 @@ function memoryInit(){
     I = 0;
 
     //Set all pixels to 0
-    for( i = 0; i < 64 * 32; i++ ){
-        pixels[i] = 0;
+    for( k = 0; k < 64 * 32; k++ ){
+        pixels[k] = 0;
+        setPixelResize(imageData, k % 64, Math.floor(k / 64), 0, 0, 0, 255, 8);
     }
+    display();
 
     //Set all keys to unpressed
     for( i = 0; i < 16; i++ ){
@@ -164,12 +105,11 @@ function compare( array1, array2 ){
 }
 
 function display(){
-    render = new Array();
-    for( i = 0; i < pixels.length; i++ ){
-        alpha = pixels[i] ? 0 : 255;
-        render.push({"x": (i % 64), "y": (i - (i % 64)) / 64, "r": 0, "g": 0, "b": 0, "a": alpha});
-    }
-    animate( render );
+    // clear stage
+    context.clearRect(0, 0, canvas.width, canvas.height);
+
+    // render stage
+    context.putImageData(imageData, 0, 0);
 }
 
 function waitForKey(){
@@ -196,6 +136,7 @@ function decodeAndExecute( opcode ){
                     //console.log("cls");
                     for( i = 0; i < pixels.length; i++ ){
                         pixels[i] = 0;
+                        setPixelResize(imageData, i % 64, Math.floor(i / 64), 0, 0, 0, 255, 8);
                     }
                     pc += 2;
                 break;
@@ -385,9 +326,11 @@ function decodeAndExecute( opcode ){
                         if( pixels[ ((Y + hline) * 64) %( 64*32 ) + (X + vline) % 64 ] ){
                             V[0xF] = 1;
                             pixels[ ((Y + hline) * 64) %( 64*32 ) + (X + vline) % 64 ] = 0;
+                            setPixelResize(imageData, X + vline, Y + hline, 0, 0, 0, 255, 8);
                         }
                         else{
                             pixels[ ((Y + hline) * 64) %( 64*32 ) + (X + vline) % 64 ] = 1;
+                            setPixelResize(imageData, X + vline, Y + hline, 0, 0, 0, 0, 8);
                         }
                     }
                 }

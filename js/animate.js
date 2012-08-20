@@ -1,53 +1,19 @@
-window.requestAnimFrame = (function(callback) {
-    return window.requestAnimationFrame || 
-    window.webkitRequestAnimationFrame || 
-    window.mozRequestAnimationFrame || 
-    window.oRequestAnimationFrame || 
-    window.msRequestAnimationFrame ||
-    function(callback) {
-      window.setTimeout(callback, 1000 / 60);
-    };
-})();
+var worker;
 
-function animate( pixelatedArray ) {
-    var canvas = document.getElementById("myCanvas");
-    var context = canvas.getContext("2d");
+var canvas;
+var context;
+var imageData;
+
+function newGame(){
+    console.log("starting");
+
+    canvas = document.getElementById("myCanvas");
+    context = canvas.getContext("2d");
 
     width = canvas.width;
     height = canvas.height;
     imageData = context.createImageData(width, height);
 
-    // update stage
-    for( q = 0; q < pixelatedArray.length; q++ ){
-        pixel = pixelatedArray[q];
-        setPixelResize(imageData, pixel.x, pixel.y, pixel.r, pixel.g, pixel.b, pixel.a, 8);
-    }
-
-    // clear stage
-    context.clearRect(0, 0, canvas.width, canvas.height);
-
-    // render stage
-    context.putImageData(imageData, 0, 0);
-}
-
-var worker;
-
-function newGame(){
-    /*
-    worker = new Worker('js/emulator.js');
-    worker.onmessage = function(event){
-        if(event.data){
-            if( event.data == "end" ){
-                newGame();
-            }
-            requestAnimFrame( function(){
-                animate( event.data.data )
-            });
-        }
-    }
-    worker.postMessage("start");
-    */
-    console.log("starting");
     main();
 }
 
@@ -109,7 +75,7 @@ document.onkeyup = function(evt){
     }
 };
 
-function keydown(evt){
+document.onkeydown = function(evt){
     evt = evt || window.event;
     key = evt.keyCode || evt.charCode;
     if(key == 49){
@@ -163,25 +129,7 @@ function keydown(evt){
     else if(key == 112 || key == 80){
         paused = true;
     }
-
-    //TODO: put the right keys in here
-    /*
-    if( key == 119 ){
-        worker.postMessage("w");
-    }
-    else if( key == 97 ){
-        worker.postMessage("a");
-    }
-    else if( key == 115 ){
-        worker.postMessage("s");
-    }
-    else if( key == 100 ){
-        worker.postMessage("d");
-    }
-    */
 };
-
-document.onkeydown = keydown;
 
 function setPixelResize(imageData, x, y, r, g, b, a, rsize) {
     for( i = 0; i < rsize; i++ ){
