@@ -66,6 +66,12 @@ var sp;
 //Key state
 var keys = [];
 
+//If the display was updated
+var bDisplayUpdate;
+
+//If the emulator is waiting for input
+var bWaitingForKey;
+
 function memoryInit(){
     //Init 16 8-bit registers
     for( i = 0; i < 16; i++ ){
@@ -84,12 +90,14 @@ function memoryInit(){
         pixels[k] = 0;
         setPixelResize(imageData, k % 64, Math.floor(k / 64), 0, 0, 0, 255, 8);
     }
+    bDisplayUpdate = true;
     display();
 
     //Set all keys to unpressed
     for( i = 0; i < 16; i++ ){
         keys[i] = 0;
     }
+    bWaitingForKey = false;
 
     //Load Fontset
     loadFontset();
@@ -105,24 +113,14 @@ function compare( array1, array2 ){
 }
 
 function display(){
-    // clear stage
-    context.clearRect(0, 0, canvas.width, canvas.height);
+    if( bDisplayUpdate ){
+        // clear stage
+        context.clearRect(0, 0, canvas.width, canvas.height);
 
-    // render stage
-    context.putImageData(imageData, 0, 0);
-}
+        // render stage
+        context.putImageData(imageData, 0, 0);
 
-function waitForKey(){
-    key_cache = keys;
-    if( compare(key_cache, keys) ){
-        setTimeout( waitForKey, 5 );
-        return;
-    }
-    for( i = 0; i < key_cache.length; i++ ){
-        if( key_cache[i] ^ keys[i] ){
-            V[ (0x0F00 & opcode) >> 8 ] = i;
-            emulateCycleSecondHalf();
-        }
+        bDisplayUpdate = false;
     }
 }
 
@@ -134,9 +132,10 @@ function decodeAndExecute( opcode ){
 
                 case 0x0000:    // 0x00E0: clear the screen
                     //console.log("cls");
-                    for( i = 0; i < pixels.length; i++ ){
-                        pixels[i] = 0;
-                        setPixelResize(imageData, i % 64, Math.floor(i / 64), 0, 0, 0, 255, 8);
+                    for( k = 0; k < pixels.length; k++ ){
+                        pixels[k] = 0;
+                        setPixelResize(imageData, k % 64, Math.floor(k / 64), 0, 0, 0, 255, 8);
+                        bDisplayUpdate = true;
                     }
                     pc += 2;
                 break;
@@ -147,7 +146,7 @@ function decodeAndExecute( opcode ){
                 break;
 
                 default:
-                    //console.log("Unknown opcode: " + opcode.toString(16));
+                    console.log("Unknown opcode: " + opcode.toString(16));
             }
         break;
 
@@ -275,7 +274,7 @@ function decodeAndExecute( opcode ){
                 break;
 
                 default:
-                    //console.log("Unknown opcode: " + opcode.toString(16));
+                    console.log("Unknown opcode: " + opcode.toString(16));
             }
         break;
 
@@ -327,10 +326,12 @@ function decodeAndExecute( opcode ){
                             V[0xF] = 1;
                             pixels[ ((Y + hline) * 64) %( 64*32 ) + (X + vline) % 64 ] = 0;
                             setPixelResize(imageData, X + vline, Y + hline, 0, 0, 0, 255, 8);
+                            bDisplayUpdate = true;
                         }
                         else{
                             pixels[ ((Y + hline) * 64) %( 64*32 ) + (X + vline) % 64 ] = 1;
                             setPixelResize(imageData, X + vline, Y + hline, 0, 0, 0, 0, 8);
+                            bDisplayUpdate = true;
                         }
                     }
                 }
@@ -363,7 +364,7 @@ function decodeAndExecute( opcode ){
                 break;
 
                 default:
-                    //console.log("Unknown opcode: " + opcode.toString(16));
+                    console.log("Unknown opcode: " + opcode.toString(16));
             }
         break;
 
@@ -377,10 +378,8 @@ function decodeAndExecute( opcode ){
                 break;
 
                 case 0x000A:    // FX0A: A key press is awaited, and then stored in VX
-                    console.log("This doesnt seem to work");
+                    bWaitingForKey = true;
                     paused = true;
-                    waitForKey();
-                    pc += 2;
                 break;
 
                 case 0x0015:    // FX15: Sets the delay timer to VX
@@ -444,12 +443,12 @@ function decodeAndExecute( opcode ){
                 break;
 
                 default:
-                    //console.log("Unknown opcode: " + opcode.toString(16));
+                    console.log("Unknown opcode: " + opcode.toString(16));
             }
         break;
 
         default:
-            //console.log("Unknown opcode: " + opcode.toString(16));
+            console.log("Unknown opcode: " + opcode.toString(16));
     }
 }
 
@@ -480,7 +479,12 @@ function emulateCycle(){
     }
 }
 
-function emulateCycleSecondHalf(){
+function emulateCycleSecondHalf( key ){
+
+    if(bWaitingForKey){
+        V[ (0x0F00 & opcode) >> 8 ] = key;
+        pc += 2;
+    }
 
     paused = false;
 
