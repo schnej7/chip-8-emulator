@@ -190,7 +190,10 @@ function setPixelResize(imageData, x, y, r, g, b, a, rsize) {
 }
 
 //Set a single pixel in the image
-function setPixel(imageData, x, y, a) {
+function setPixel(imageData, x, y, r, g, b, a) {
     index = (x + y * imageData.width) * 4;
+    imageData.data[index] = r;
+    imageData.data[index+1] = g;
+    imageData.data[index+2] = b;
     imageData.data[index+3] = a;
 }
