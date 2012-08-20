@@ -88,7 +88,7 @@ function memoryInit(){
     //Set all pixels to 0
     for( k = 0; k < 64 * 32; k++ ){
         pixels[k] = 0;
-        setPixelResize(imageData, k % 64, Math.floor(k / 64), 0, 0, 0, 255, 8);
+        setPixelResize(imageData, k % 64, Math.floor(k / 64), 0, 0, 0, 255, 12);
     }
     bDisplayUpdate = true;
     display();
@@ -134,7 +134,7 @@ function decodeAndExecute( opcode ){
                     //console.log("cls");
                     for( k = 0; k < pixels.length; k++ ){
                         pixels[k] = 0;
-                        setPixelResize(imageData, k % 64, Math.floor(k / 64), 0, 0, 0, 255, 8);
+                        setPixelResize(imageData, k % 64, Math.floor(k / 64), 0, 0, 0, 255, 12);
                         bDisplayUpdate = true;
                     }
                     pc += 2;
@@ -325,12 +325,12 @@ function decodeAndExecute( opcode ){
                         if( pixels[ ((Y + hline) * 64) %( 64*32 ) + (X + vline) % 64 ] ){
                             V[0xF] = 1;
                             pixels[ ((Y + hline) * 64) %( 64*32 ) + (X + vline) % 64 ] = 0;
-                            setPixelResize(imageData, X + vline, Y + hline, 0, 0, 0, 255, 8);
+                            setPixelResize(imageData, X + vline, Y + hline, 0, 0, 0, 255, 12);
                             bDisplayUpdate = true;
                         }
                         else{
                             pixels[ ((Y + hline) * 64) %( 64*32 ) + (X + vline) % 64 ] = 1;
-                            setPixelResize(imageData, X + vline, Y + hline, 0, 0, 0, 0, 8);
+                            setPixelResize(imageData, X + vline, Y + hline, 0, 0, 0, 0, 12);
                             bDisplayUpdate = true;
                         }
                     }

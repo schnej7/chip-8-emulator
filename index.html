@@ -1,14 +1,44 @@
+<!DOCTYPE html>
 <html>
     <head>
         <script src='js/animate.js'></script>
         <script src='js/emulator.js'></script>
         <script src='js/fileHelper.js'></script>
+        <link href="css/bootstrap.css" rel="stylesheet" type="text/css">
+        <link href="css/style.css" rel="stylesheet" type="text/css">
     </head>
     <body>
-        <canvas id="myCanvas" width="512" height="256" style="border-style: solid; border-width: 1;">
-            <p>Your browser does not support html5!</p>
-        </canvas>    
-        <input type="file" id="files" name="file" />
-        <output id="fileName"></output>
-    </body>
-</html>
+        <div class="main">
+            <div class="padded container thumbnail">
+                <h1>Chip-8 Emulator</h1>
+            </div>
+            <br />
+            <div class="container well">
+                <div class="center">
+                    <canvas class="screen" id="myCanvas" width="768" height="384">
+                        <p>Your browser does not support html5!</p>
+                    </canvas>    
+                </div>
+                <div class="row">
+                    <div class="offset3 span2" style="font-family: monospace;">
+                        <p>Keypad:</p>
+                        +---+---+---+---+<br />
+                        | 1 | 2 | 3 | 4 |<br />
+                        +---+---+---+---+<br />
+                        | q | w | e | r |<br />
+                        +---+---+---+---+<br />
+                        | a | s | d | f |<br />
+                        +---+---+---+---+<br />
+                        | z | x | c | v |<br />
+                        +---+---+---+---+<br />
+                    </div>
+                    <div class="span4">
+                        <input type="file" id="files" name="file" />
+                    </div>
+                </div>
+            </div>
+            <div class="container well">
+                <p>Chip-8 Emulator written by <a href="http://www.jerry-schneider.com">Jerry Schneider</a></p>
+            </div>
+        </div>
+    </body></html>

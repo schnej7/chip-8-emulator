@@ -1,0 +1,17 @@
+.main{
+    margin: 10px;
+}
+
+.screen{
+    border-style: solid;
+    border-width: 1px;
+    border-color: black;
+}
+
+.padded{
+    padding: 20px;
+}
+
+.center{
+    text-align: center;
+}
