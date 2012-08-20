@@ -7,6 +7,7 @@ var imageData;
 function newGame(){
     console.log("starting");
 
+    //Initalize the canvas
     canvas = document.getElementById("myCanvas");
     context = canvas.getContext("2d");
 
@@ -179,6 +180,7 @@ document.onkeydown = function(evt){
     }
 };
 
+//Enlarge the image
 function setPixelResize(imageData, x, y, r, g, b, a, rsize) {
     for( i = 0; i < rsize; i++ ){
         for( j = 0; j < rsize; j++ ){
@@ -187,10 +189,8 @@ function setPixelResize(imageData, x, y, r, g, b, a, rsize) {
     }
 }
 
-function setPixel(imageData, x, y, r, g, b, a) {
+//Set a single pixel in the image
+function setPixel(imageData, x, y, a) {
     index = (x + y * imageData.width) * 4;
-    imageData.data[index+0] = r;
-    imageData.data[index+1] = g;
-    imageData.data[index+2] = b;
     imageData.data[index+3] = a;
 }
