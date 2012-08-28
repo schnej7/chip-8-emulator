@@ -15,6 +15,8 @@ function newGame(){
     height = canvas.height;
     imageData = context.createImageData(width, height);
 
+    clearScreen();
+
     main();
 }
 
@@ -179,6 +181,22 @@ document.onkeydown = function(evt){
         paused = true;
     }
 };
+
+var rsize = 12;
+function drawPixel( X, Y, value ){
+    if( value ){
+        context.fillStyle = '#FFF';
+    }
+    else{
+        context.fillStyle = '#000';
+    }
+    context.fillRect( X*rsize, Y*rsize, rsize, rsize );
+}
+
+function clearScreen(){
+    context.fillStyle = '#000';
+    context.fillRect( 0, 0, width, height );
+}
 
 //Enlarge the image
 function setPixelResize(imageData, x, y, r, g, b, a, rsize) {

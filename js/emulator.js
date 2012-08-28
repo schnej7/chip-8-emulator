@@ -113,6 +113,7 @@ function compare( array1, array2 ){
 }
 
 function display(){
+    /*
     if( bDisplayUpdate ){
         // clear stage
         context.clearRect(0, 0, canvas.width, canvas.height);
@@ -122,6 +123,7 @@ function display(){
 
         bDisplayUpdate = false;
     }
+    */
 }
 
 function decodeAndExecute( opcode ){
@@ -134,7 +136,7 @@ function decodeAndExecute( opcode ){
                     //console.log("cls");
                     for( k = 0; k < pixels.length; k++ ){
                         pixels[k] = 0;
-                        setPixelResize(imageData, k % 64, Math.floor(k / 64), 0, 0, 0, 255, 12);
+                        clearScreen();
                         bDisplayUpdate = true;
                     }
                     pc += 2;
@@ -325,12 +327,12 @@ function decodeAndExecute( opcode ){
                         if( pixels[ ((Y + hline) * 64) %( 64*32 ) + (X + vline) % 64 ] ){
                             V[0xF] = 1;
                             pixels[ ((Y + hline) * 64) %( 64*32 ) + (X + vline) % 64 ] = 0;
-                            setPixelResize(imageData, X + vline, Y + hline, 0, 0, 0, 255, 12);
+                            drawPixel(X + vline, Y + hline, false);
                             bDisplayUpdate = true;
                         }
                         else{
                             pixels[ ((Y + hline) * 64) %( 64*32 ) + (X + vline) % 64 ] = 1;
-                            setPixelResize(imageData, X + vline, Y + hline, 0, 0, 0, 0, 12);
+                            drawPixel(X + vline, Y + hline, true);
                             bDisplayUpdate = true;
                         }
                     }
