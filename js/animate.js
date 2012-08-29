@@ -3,8 +3,8 @@ var worker;
 var canvas;
 var context;
 var imageData;
-var colorOn = 0xFFF;
-var colorOff = 0x000;
+var colorOn = "#FFF";
+var colorOff = "#000";
 
 function newGame(){
     console.log("starting");
@@ -186,27 +186,22 @@ document.onkeydown = function(evt){
 
 var rsize = 12;
 function drawPixel( X, Y, value ){
-    if( value ){
-        context.fillStyle = '#' + pad(colorOn.toString(16), 3);
-    }
-    else{
-        context.fillStyle = '#' + pad(colorOff.toString(16), 3);
-    }
+    context.fillStyle = value ? colorOn : colorOff;
     context.fillRect( X*rsize, Y*rsize, rsize, rsize );
 }
 
 function changeOn(){
-    colorOn = document.getElementById("txtColorOn").value;
+    colorOn = '#' + pad( document.getElementById("txtColorOn").value, 3 );
     chip8.fullRender();
 }
 
 function changeOff(){
-    colorOff = document.getElementById("txtColorOff").value;
+    colorOff = '#' + pad( document.getElementById("txtColorOff").value, 3 );
     chip8.fullRender();
 }
 
 function changeTimeout(){
-    chip8.timeout = document.getElementById("txtTimeout").value;
+    chip8.timeout = parseInt( document.getElementById("txtTimeout").value );
 }
 
 function pad(number, length) {
@@ -218,7 +213,7 @@ function pad(number, length) {
 }
 
 function clearScreen(){
-    context.fillStyle = '#' + pad(colorOff.toString(16), 3);
+    context.fillStyle = colorOff;
     context.fillRect( 0, 0, width, height );
 }
 
