@@ -20,7 +20,7 @@ function newGame(){
     clearScreen();
 
     chip8.main();
-}
+};
 
 window.onload = function() {
     enableFileSelection();
@@ -188,21 +188,21 @@ var rsize = 12;
 function drawPixel( X, Y, value ){
     context.fillStyle = value ? colorOn : colorOff;
     context.fillRect( X*rsize, Y*rsize, rsize, rsize );
-}
+};
 
 function changeOn(){
     colorOn = '#' + pad( document.getElementById("txtColorOn").value, 3 );
     chip8.fullRender();
-}
+};
 
 function changeOff(){
     colorOff = '#' + pad( document.getElementById("txtColorOff").value, 3 );
     chip8.fullRender();
-}
+};
 
 function changeTimeout(){
     chip8.timeout = parseInt( document.getElementById("txtTimeout").value );
-}
+};
 
 function pad(number, length) {
     var str = '' + number;
@@ -210,12 +210,12 @@ function pad(number, length) {
         str = '0' + str;
     }
     return str;
-}
+};
 
 function clearScreen(){
     context.fillStyle = colorOff;
     context.fillRect( 0, 0, width, height );
-}
+};
 
 //Enlarge the image
 function setPixelResize(imageData, x, y, r, g, b, a, rsize) {
@@ -224,7 +224,7 @@ function setPixelResize(imageData, x, y, r, g, b, a, rsize) {
             setPixel(imageData, x*rsize+i, y*rsize+j, r, g, b, a);
         }
     }
-}
+};
 
 //Set a single pixel in the image
 function setPixel(imageData, x, y, r, g, b, a) {
@@ -233,4 +233,4 @@ function setPixel(imageData, x, y, r, g, b, a) {
     imageData.data[index+1] = g;
     imageData.data[index+2] = b;
     imageData.data[index+3] = a;
-}
+};

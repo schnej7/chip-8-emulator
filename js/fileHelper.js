@@ -9,7 +9,7 @@ function enableFileSelection(){
     }
 
     document.getElementById('files').addEventListener('change', handleFileSelect, false);
-}
+};
 
 function handleFileSelect(evt) {
     var files = evt.target.files; // FileList object
@@ -28,5 +28,5 @@ function handleFileSelect(evt) {
     })(file);
 
     fileReader.readAsArrayBuffer(file);
-}
+};
 

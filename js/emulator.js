@@ -53,7 +53,7 @@ chip8.V = [];
 chip8.I = 0;
 
 //Program counter (upper 4 bits are unused)
-chip8.pc = 0;;
+chip8.pc = 0;
 
 //Pixel Display
 chip8.pixels = [];
@@ -65,13 +65,13 @@ chip8.sound_timer = 0;
 //16 frame stack
 chip8.stack = [];
 //Stack pointer
-chip8.sp = 0;;
+chip8.sp = 0;
 
 //Key state
 chip8.keys = [];
 
 //If the display was updated
-chip8.bDisplayUpdate =false;
+chip8.bDisplayUpdate = false;
 
 //If the emulator is waiting for input
 chip8.bWaitingForKey = false;
@@ -103,7 +103,7 @@ chip8.memoryInit = function(){
 
     //Load Fontset
     this.loadFontset();
-}
+};
 
 chip8.compare = function( array1, array2 ){
     for( i = 0; i < array1.length; i++ ){
@@ -112,7 +112,7 @@ chip8.compare = function( array1, array2 ){
         }
     }
     return true;
-}
+};
 
 chip8.decodeAndExecute = function( opcode ){
     switch( opcode & 0xF000 ){
@@ -440,13 +440,13 @@ chip8.decodeAndExecute = function( opcode ){
         default:
             console.log("Unknown opcode: " + opcode.toString(16));
     }
-}
+};
 
 chip8.fullRender = function(){
     for( i = 0; i < this.pixels.length; i++ ){
         drawPixel( i % 64, Math.floor(i / 64), this.pixels[i]);
     }
-}
+};
 
 chip8.emulateCycle = function(){
     //Fetch opcode, instructions are 2 bytes long
@@ -470,7 +470,7 @@ chip8.emulateCycle = function(){
         var _this = this;
         setTimeout( function(){_this.emulateCycle()}, this.timeout );
     }
-}
+};
 
 chip8.emulateCycleSecondHalf = function( key ){
 
@@ -494,20 +494,20 @@ chip8.emulateCycleSecondHalf = function( key ){
     //Execute next instruction
     var _this = this;
     setTimeout( function(){_this.emulateCycle()}, this.timeout );
-}
+};
 
 chip8.main = function(){
     this.memoryInit();
 
     //Emulation will begin once the game is loaded
-}
+};
 
 //Load the game into the emulator memory
 chip8.loadGame = function(){
     for( i = 0; i < romFile.byteLength; i++ ){
         this.memoryView[0x200 + i] = romFile[i];
     }
-}
+};
 
 chip8.gameSelected = function(){
 
@@ -517,4 +517,4 @@ chip8.gameSelected = function(){
 
     //Emulation loop
     this.emulateCycle();
-}
+};
