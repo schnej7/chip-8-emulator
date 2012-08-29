@@ -125,9 +125,9 @@ chip8.decodeAndExecute = function( opcode ){
                     //console.log("cls");
                     for( var k = 0; k < this.pixels.length; k++ ){
                         this.pixels[k] = 0;
-                        clearScreen();
-                        this.bDisplayUpdate = true;
                     }
+                    this.bDisplayUpdate = true;
+                    clearScreen();
                     this.pc += 2;
                 break;
 
@@ -312,18 +312,19 @@ chip8.decodeAndExecute = function( opcode ){
                 for( var vline = 0; vline < 8; vline++ ){
                     //If the sprite specifies a difference at this pixel
                     if( spriteRow & (0x80 >> vline) ){
+                        var pixelIndex = ((Y + hline) * 64) %( 64*32 ) + (X + vline) % 64;
                         //Check if the bit is on, then flip it
-                        if( this.pixels[ ((Y + hline) * 64) %( 64*32 ) + (X + vline) % 64 ] ){
+                        if( this.pixels[ pixelIndex ] ){
+                            //TODO: is v[0xF] only supposed to get set here?
                             this.V[0xF] = 1;
-                            this.pixels[ ((Y + hline) * 64) %( 64*32 ) + (X + vline) % 64 ] = 0;
+                            this.pixels[ pixelIndex ] = 0;
                             drawPixel((X + vline) % 64, (Y + hline) % 32, false);
-                            this.bDisplayUpdate = true;
                         }
                         else{
-                            this.pixels[ ((Y + hline) * 64) %( 64*32 ) + (X + vline) % 64 ] = 1;
+                            this.pixels[ pixelIndex ] = 1;
                             drawPixel((X + vline) % 64, (Y + hline) % 32, true);
-                            this.bDisplayUpdate = true;
                         }
+                        this.bDisplayUpdate = true;
                     }
                 }
             }
