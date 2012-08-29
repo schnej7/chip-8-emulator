@@ -410,9 +410,10 @@ chip8.decodeAndExecute = function( opcode ){
                                 //       the middle digit at I plus 1, 
                                 //       and the least significant digit at I plus 2
                     //console.log("Store each decimal");
-                    this.memoryView[this.I]     = Math.floor(this.V[(opcode & 0x0F00) >> 8] / 100);
-                    this.memoryView[this.I + 1] = Math.floor((this.V[(opcode & 0x0F00) >> 8] / 10)) % 10;
-                    this.memoryView[this.I + 2] = (this.V[(opcode & 0x0F00) >> 8] % 100) % 10;
+                    var VX = this.V[(opcode & 0x0F00) >> 8]
+                    this.memoryView[this.I]     = Math.floor( VX / 100);
+                    this.memoryView[this.I + 1] = Math.floor( VX / 10) % 10;
+                    this.memoryView[this.I + 2] = VX % 10;
                     this.pc += 2;
                 break;
 
