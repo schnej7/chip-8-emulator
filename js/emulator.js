@@ -439,6 +439,12 @@ chip8.decodeAndExecute = function( opcode ){
     }
 }
 
+chip8.fullRender = function(){
+    for( i = 0; i < this.pixels.length; i++ ){
+        drawPixel( i % 64, Math.floor(i / 64), this.pixels[i]);
+    }
+}
+
 chip8.emulateCycle = function(){
     //Fetch opcode, instructions are 2 bytes long
     opcode = this.memoryView[this.pc] << 8 | this.memoryView[this.pc+1];
