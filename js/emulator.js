@@ -471,7 +471,7 @@ chip8.emulateCycle = function(){
 
         //Execute next instruction
         var _this = this;
-        setTimeout( function(){_this.emulateCycle()}, this.timeout );
+        this.timer = setTimeout( function(){_this.emulateCycle()}, this.timeout );
     }
 };
 
@@ -499,23 +499,20 @@ chip8.emulateCycleSecondHalf = function( key ){
 
     //Execute next instruction
     var _this = this;
-    setTimeout( function(){_this.emulateCycle()}, this.timeout );
+    this.timer = setTimeout( function(){_this.emulateCycle()}, this.timeout );
 };
 
 //Load the game into the emulator memory
-chip8.loadGame = function(){
-    for( var i = 0; i < romFile.byteLength; i++ ){
-        this.memoryView[0x200 + i] = romFile[i];
-    }
-};
-
-chip8.gameSelected = function(){
-    //Clean slate
+chip8.loadGame = function( romFile ){
+    //Clear existing timers, memory, and screen
+    clearTimeout( this.timer );
     this.memoryInit();
     clearScreen();
 
     //Load the game into memory
-    this.loadGame();
+    for( var i = 0; i < romFile.byteLength; i++ ){
+        this.memoryView[0x200 + i] = romFile[i];
+    }
     console.log('beginning emulation');
 
     //Emulation loop
