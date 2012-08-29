@@ -488,6 +488,9 @@ chip8.emulateCycleSecondHalf = function( key ){
     }
     if( this.sound_timer > 0 ){
         this.sound_timer--;
+        if( this.sound_timer === 0 ){
+            //TODO: Play a sound here
+        }
     }
     
     //Get input
@@ -495,13 +498,6 @@ chip8.emulateCycleSecondHalf = function( key ){
     //Execute next instruction
     var _this = this;
     setTimeout( function(){_this.emulateCycle()}, this.timeout );
-};
-
-chip8.main = function(){
-    //TODO: memoryInit is now called by gameSelected, clean this up
-    //this.memoryInit();
-
-    //Emulation will begin once the game is loaded
 };
 
 //Load the game into the emulator memory
