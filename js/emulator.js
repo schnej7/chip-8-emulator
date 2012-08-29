@@ -86,6 +86,7 @@ chip8.memoryInit = function(){
     
     //Clear memory
     this.opcode = 0;
+    this.stack = [];
     this.sp = 0;
     this.I = 0;
 
@@ -497,7 +498,8 @@ chip8.emulateCycleSecondHalf = function( key ){
 };
 
 chip8.main = function(){
-    this.memoryInit();
+    //TODO: memoryInit is now called by gameSelected, clean this up
+    //this.memoryInit();
 
     //Emulation will begin once the game is loaded
 };
@@ -510,6 +512,9 @@ chip8.loadGame = function(){
 };
 
 chip8.gameSelected = function(){
+    //Clean slate
+    this.memoryInit();
+    clearScreen();
 
     //Load the game into memory
     this.loadGame();
