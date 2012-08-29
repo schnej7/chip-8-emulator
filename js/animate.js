@@ -1,12 +1,10 @@
-var worker;
-
 var canvas;
 var context;
 var imageData;
 var colorOn = "#FFF";
 var colorOff = "#000";
 
-function newGame(){
+function canvasInit(){
     console.log("starting");
 
     //Initalize the canvas
@@ -18,13 +16,11 @@ function newGame(){
     imageData = context.createImageData(width, height);
 
     clearScreen();
-
-    chip8.main();
 };
 
 window.onload = function() {
     enableFileSelection();
-    newGame();
+    canvasInit();
 };
 
 //maps keycodes (uppercase) to chip8 keys
@@ -107,22 +103,4 @@ function pad(number, length) {
 function clearScreen(){
     context.fillStyle = colorOff;
     context.fillRect( 0, 0, width, height );
-};
-
-//Enlarge the image
-function setPixelResize(imageData, x, y, r, g, b, a, rsize) {
-    for( var i = 0; i < rsize; i++ ){
-        for( var j = 0; j < rsize; j++ ){
-            setPixel(imageData, x*rsize+i, y*rsize+j, r, g, b, a);
-        }
-    }
-};
-
-//Set a single pixel in the image
-function setPixel(imageData, x, y, r, g, b, a) {
-    var index = (x + y * imageData.width) * 4;
-    imageData.data[index] = r;
-    imageData.data[index+1] = g;
-    imageData.data[index+2] = b;
-    imageData.data[index+3] = a;
 };
