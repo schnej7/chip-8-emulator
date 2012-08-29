@@ -4,7 +4,7 @@
 var chip8 = chip8 || {};
 //Load the fontset into memory at 0x50
 chip8.loadFontset = function(){
-    for( i = 0; i < this.chip8_fontset.length; i++){
+    for( var i = 0; i < this.chip8_fontset.length; i++){
         this.memoryView[0x50 + i] = this.chip8_fontset[i];
     }
 };
@@ -53,7 +53,7 @@ chip8.V = [];
 chip8.I = 0;
 
 //Program counter (upper 4 bits are unused)
-chip8.pc = 0;;
+chip8.pc = 0;
 
 //Pixel Display
 chip8.pixels = [];
@@ -65,20 +65,20 @@ chip8.sound_timer = 0;
 //16 frame stack
 chip8.stack = [];
 //Stack pointer
-chip8.sp = 0;;
+chip8.sp = 0;
 
 //Key state
 chip8.keys = [];
 
 //If the display was updated
-chip8.bDisplayUpdate =false;
+chip8.bDisplayUpdate = false;
 
 //If the emulator is waiting for input
 chip8.bWaitingForKey = false;
 
 chip8.memoryInit = function(){
     //Init 16 8-bit registers
-    for( i = 0; i < 16; i++ ){
+    for( var i = 0; i < 16; i++ ){
         this.V[i] = 0;
     }
     //Applications are expected to be loaded at 0x200
@@ -86,33 +86,34 @@ chip8.memoryInit = function(){
     
     //Clear memory
     this.opcode = 0;
+    this.stack = [];
     this.sp = 0;
     this.I = 0;
 
     //Set all pixels to 0
-    for( k = 0; k < 64 * 32; k++ ){
+    for( var k = 0; k < 64 * 32; k++ ){
         this.pixels[k] = 0;
     }
     this.bDisplayUpdate = true;
 
     //Set all keys to unpressed
-    for( i = 0; i < 16; i++ ){
+    for( var i = 0; i < 16; i++ ){
         this.keys[i] = 0;
     }
     this.bWaitingForKey = false;
 
     //Load Fontset
     this.loadFontset();
-}
+};
 
 chip8.compare = function( array1, array2 ){
-    for( i = 0; i < array1.length; i++ ){
+    for( var i = 0; i < array1.length; i++ ){
         if( array1[i] != array2[i] ){
             return false;
         }
     }
     return true;
-}
+};
 
 chip8.decodeAndExecute = function( opcode ){
     switch( opcode & 0xF000 ){
@@ -122,7 +123,7 @@ chip8.decodeAndExecute = function( opcode ){
 
                 case 0x0000:    // 0x00E0: clear the screen
                     //console.log("cls");
-                    for( k = 0; k < this.pixels.length; k++ ){
+                    for( var k = 0; k < this.pixels.length; k++ ){
                         this.pixels[k] = 0;
                         clearScreen();
                         this.bDisplayUpdate = true;
@@ -301,14 +302,14 @@ chip8.decodeAndExecute = function( opcode ){
                         //       I value doesn't change after the execution of this instruction. 
                         //       As described above, VF is set to 1 if any screen pixels are flipped from set to unset when the sprite is drawn, and to 0 if that doesn't happen.
             //console.log("Draw");
-            X = this.V[(opcode & 0x0F00) >> 8];
-            Y = this.V[(opcode & 0x00F0) >> 4];
-            spriteHeight = opcode & 0x000F;
+            var X = this.V[(opcode & 0x0F00) >> 8];
+            var Y = this.V[(opcode & 0x00F0) >> 4];
+            var spriteHeight = opcode & 0x000F;
 
             this.V[0xF] = 0;
-            for( hline = 0; hline < spriteHeight; hline++ ){
-                spriteRow = this.memoryView[ this.I + hline ];
-                for( vline = 0; vline < 8; vline++ ){
+            for( var hline = 0; hline < spriteHeight; hline++ ){
+                var spriteRow = this.memoryView[ this.I + hline ];
+                for( var vline = 0; vline < 8; vline++ ){
                     //If the sprite specifies a difference at this pixel
                     if( spriteRow & (0x80 >> vline) ){
                         //Check if the bit is on, then flip it
@@ -417,7 +418,7 @@ chip8.decodeAndExecute = function( opcode ){
                 case 0x0055:    // FX55: Stores V0 to VX in memory starting at address I
                     //console.log("store all registers in memory");
                     X = (opcode & 0x0F00) >> 8;
-                    for( i = 0; i <= X; i++ ){
+                    for( var i = 0; i <= X; i++ ){
                         this.memoryView[this.I+i] = this.V[i];
                     }
                     this.pc += 2;
@@ -426,7 +427,7 @@ chip8.decodeAndExecute = function( opcode ){
                 case 0x0065:    // FX65: Fills V0 to VX with values from memory starting at address I
                     //console.log("get all registers from memory");
                     X = (opcode & 0x0F00) >> 8;
-                    for( i = 0; i <= X; i++ ){
+                    for( var i = 0; i <= X; i++ ){
                         this.V[i] = this.memoryView[this.I+i];
                     }
                     this.pc += 2;
@@ -440,13 +441,13 @@ chip8.decodeAndExecute = function( opcode ){
         default:
             console.log("Unknown opcode: " + opcode.toString(16));
     }
-}
+};
 
 chip8.fullRender = function(){
-    for( i = 0; i < this.pixels.length; i++ ){
+    for( var i = 0; i < this.pixels.length; i++ ){
         drawPixel( i % 64, Math.floor(i / 64), this.pixels[i]);
     }
-}
+};
 
 chip8.emulateCycle = function(){
     //Fetch opcode, instructions are 2 bytes long
@@ -470,7 +471,7 @@ chip8.emulateCycle = function(){
         var _this = this;
         setTimeout( function(){_this.emulateCycle()}, this.timeout );
     }
-}
+};
 
 chip8.emulateCycleSecondHalf = function( key ){
 
@@ -494,22 +495,26 @@ chip8.emulateCycleSecondHalf = function( key ){
     //Execute next instruction
     var _this = this;
     setTimeout( function(){_this.emulateCycle()}, this.timeout );
-}
+};
 
 chip8.main = function(){
-    this.memoryInit();
+    //TODO: memoryInit is now called by gameSelected, clean this up
+    //this.memoryInit();
 
     //Emulation will begin once the game is loaded
-}
+};
 
 //Load the game into the emulator memory
 chip8.loadGame = function(){
-    for( i = 0; i < romFile.byteLength; i++ ){
+    for( var i = 0; i < romFile.byteLength; i++ ){
         this.memoryView[0x200 + i] = romFile[i];
     }
-}
+};
 
 chip8.gameSelected = function(){
+    //Clean slate
+    this.memoryInit();
+    clearScreen();
 
     //Load the game into memory
     this.loadGame();
@@ -517,4 +522,4 @@ chip8.gameSelected = function(){
 
     //Emulation loop
     this.emulateCycle();
-}
+};

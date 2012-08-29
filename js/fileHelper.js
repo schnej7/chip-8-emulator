@@ -9,14 +9,14 @@ function enableFileSelection(){
     }
 
     document.getElementById('files').addEventListener('change', handleFileSelect, false);
-}
+};
 
 function handleFileSelect(evt) {
     var files = evt.target.files; // FileList object
 
     // files is a FileList of File objects. List some properties.
     var output = [];
-    file = files[0];
+    var file = files[0];
 
     var fileReader = new FileReader();
 
@@ -28,5 +28,5 @@ function handleFileSelect(evt) {
     })(file);
 
     fileReader.readAsArrayBuffer(file);
-}
+};
 
