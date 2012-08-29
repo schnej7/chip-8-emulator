@@ -205,6 +205,10 @@ function changeOff(){
     chip8.fullRender();
 }
 
+function changeTimeout(){
+    chip8.timeout = document.getElementById("txtTimeout").value;
+}
+
 function pad(number, length) {
     var str = '' + number;
     while (str.length < length) {

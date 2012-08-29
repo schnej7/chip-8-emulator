@@ -32,6 +32,9 @@ chip8.chip8_fontset = [
 //The current opcode
 chip8.opcode;
 
+//The timeout between emulation cycles
+chip8.timeout = 0;
+
 //If the game is paused on input
 chip8.paused = false;
 
@@ -465,7 +468,7 @@ chip8.emulateCycle = function(){
 
         //Execute next instruction
         var _this = this;
-        setTimeout( function(){_this.emulateCycle()}, 0 );
+        setTimeout( function(){_this.emulateCycle()}, this.timeout );
     }
 }
 
@@ -490,7 +493,7 @@ chip8.emulateCycleSecondHalf = function( key ){
 
     //Execute next instruction
     var _this = this;
-    setTimeout( function(){_this.emulateCycle()}, 0 );
+    setTimeout( function(){_this.emulateCycle()}, this.timeout );
 }
 
 chip8.main = function(){
