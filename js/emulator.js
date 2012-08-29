@@ -108,7 +108,7 @@ chip8.memoryInit = function(){
 
 chip8.compare = function( array1, array2 ){
     for( var i = 0; i < array1.length; i++ ){
-        if( array1[i] != array2[i] ){
+        if( array1[i] !== array2[i] ){
             return false;
         }
     }
@@ -154,7 +154,7 @@ chip8.decodeAndExecute = function( opcode ){
 
         case 0x3000:    // 3XNN: Skips the next instrouction if VX equals NN
             //console.log("VX: " + V[ (0x0F00 & opcode) >> 8 ].toString(16) + "; NN: " + (0x00FF & opcode).toString(16) );
-            if( this.V[ (0x0F00 & opcode) >> 8 ] == (0x00FF & opcode) ){
+            if( this.V[ (0x0F00 & opcode) >> 8 ] === (0x00FF & opcode) ){
                 //console.log("skipped");
                 this.pc += 4;
             }
@@ -165,7 +165,7 @@ chip8.decodeAndExecute = function( opcode ){
 
         case 0x4000:    // 4XNN: Skips the next instrouction if VX does not equal NN
             //console.log("VX: " + V[ (0x0F00 & opcode) >> 8 ].toString(16) + "; NN: " + (0x00FF & opcode).toString(16) );
-            if( this.V[ (0x0F00 & opcode) >> 8 ] != (0x00FF & opcode) ){
+            if( this.V[ (0x0F00 & opcode) >> 8 ] !== (0x00FF & opcode) ){
                 //console.log("skipped");
                 this.pc += 4;
             }
@@ -176,7 +176,7 @@ chip8.decodeAndExecute = function( opcode ){
 
         case 0x5000:    // 5XY0: Skips the next instrouction if VX equals VY
             //console.log("VX: " + V[ (0x0F00 & opcode) >> 8 ].toString(16) + "; VY: " + V[ (0x00F0 & opcode) >> 4 ].toString(16) );
-            if( this.V[ (0x0F00 & opcode) >> 8 ] == this.V[ (0x00F0 & opcode) >> 4 ] ){
+            if( this.V[ (0x0F00 & opcode) >> 8 ] === this.V[ (0x00F0 & opcode) >> 4 ] ){
                 //console.log("skipped");
                 this.pc += 4;
             }
@@ -271,7 +271,7 @@ chip8.decodeAndExecute = function( opcode ){
 
         case 0x9000:    // Skips the next instruction if VX doesn't equal VY
             //console.log("VX: " + V[ (0x0F00 & opcode) >> 8 ].toString(16) + "; VY: " + V[ (0x00F0 & opcode) >> 4 ].toString(16) );
-            if( this.V[ (0x0F00 & opcode) >> 8 ] != this.V[ (0x00F0 & opcode) >> 4 ] ){
+            if( this.V[ (0x0F00 & opcode) >> 8 ] !== this.V[ (0x00F0 & opcode) >> 4 ] ){
                 //console.log("skipped");
                 this.pc += 4;
             }
@@ -453,7 +453,7 @@ chip8.emulateCycle = function(){
     //Fetch opcode, instructions are 2 bytes long
     opcode = this.memoryView[this.pc] << 8 | this.memoryView[this.pc+1];
 
-    //console.log("memory[" + pc.toString(16) + "] == " + opcode.toString(16));
+    //console.log("memory[" + pc.toString(16) + "] === " + opcode.toString(16));
     //Decode and execute opcode
     this.decodeAndExecute( opcode );
 
