@@ -92,7 +92,7 @@ chip8.memoryInit = function(){
 
     //Set all pixels to 0
     for( var k = 0; k < 64 * 32; k++ ){
-        this.pixels[k] = 0;
+        this.pixels[k] = false;
     }
     this.bDisplayUpdate = true;
 
@@ -106,6 +106,7 @@ chip8.memoryInit = function(){
     this.loadFontset();
 };
 
+//TODO: What is this used for?
 chip8.compare = function( array1, array2 ){
     for( var i = 0; i < array1.length; i++ ){
         if( array1[i] !== array2[i] ){
@@ -124,7 +125,7 @@ chip8.decodeAndExecute = function( opcode ){
                 case 0x0000:    // 0x00E0: clear the screen
                     //console.log("cls");
                     for( var k = 0; k < this.pixels.length; k++ ){
-                        this.pixels[k] = 0;
+                        this.pixels[k] = false;
                     }
                     this.bDisplayUpdate = true;
                     clearScreen();
@@ -313,18 +314,14 @@ chip8.decodeAndExecute = function( opcode ){
                     //If the sprite specifies a difference at this pixel
                     if( spriteRow & (0x80 >> vline) ){
                         var pixelIndex = ((Y + hline) * 64) %( 64*32 ) + (X + vline) % 64;
-                        //Check if the bit is on, then flip it
-                        if( this.pixels[ pixelIndex ] ){
-                            //TODO: is v[0xF] only supposed to get set here?
-                            this.V[0xF] = 1;
-                            this.pixels[ pixelIndex ] = 0;
-                            drawPixel((X + vline) % 64, (Y + hline) % 32, false);
-                        }
-                        else{
-                            this.pixels[ pixelIndex ] = 1;
-                            drawPixel((X + vline) % 64, (Y + hline) % 32, true);
-                        }
+                        //flip the bit
+                        var bit = !this.pixels[ pixelIndex ];
+                        this.pixels[ pixelIndex ] = bit;
+                        //update the display
+                        drawPixel((X + vline) % 64, (Y + hline) % 32, bit);
                         this.bDisplayUpdate = true;
+                        //if the bit was reset, set VF
+                        bit || (this.V[0xF] = 1);
                     }
                 }
             }
@@ -453,6 +450,8 @@ chip8.fullRender = function(){
 
 chip8.emulateCycle = function(){
     //Fetch opcode, instructions are 2 bytes long
+    //TODO: opcode is a free variable, AKA global
+    //(we should sort out its dependents and make it local)
     opcode = this.memoryView[this.pc] << 8 | this.memoryView[this.pc+1];
 
     //console.log("memory[" + pc.toString(16) + "] === " + opcode.toString(16));
@@ -463,9 +462,13 @@ chip8.emulateCycle = function(){
         //Update timers
         if( this.delay_timer > 0 ){
             this.delay_timer--;
+            //TODO: What happens here?
         }
         if( this.sound_timer > 0 ){
             this.sound_timer--;
+            if( this.sound_timer !== 0 ){
+                //TODO: Play a sound when timer is non-zero
+            }
         }
         //Get input
 
@@ -475,11 +478,16 @@ chip8.emulateCycle = function(){
     }
 };
 
+//TODO: Condense similar code with emulateCycle
 chip8.emulateCycleSecondHalf = function( key ){
-
+    //TODO: Do bWaitingForKey and paused mean the same thing?
     if(this.bWaitingForKey){
         this.V[ (0x0F00 & opcode) >> 8 ] = key;
         this.pc += 2;
+        //TODO: This line fixes the INVADERS second round glitch,
+        // bWaitingForKey remained set after its first use (GAMEOVER screen),
+        // is there any need for paused now?
+        this.bWaitingForKey = false;
     }
 
     this.paused = false;
@@ -487,11 +495,12 @@ chip8.emulateCycleSecondHalf = function( key ){
     //Update timers
     if( this.delay_timer > 0 ){
         this.delay_timer--;
+        //TODO: What happens here?
     }
     if( this.sound_timer > 0 ){
         this.sound_timer--;
-        if( this.sound_timer === 0 ){
-            //TODO: Play a sound here
+        if( this.sound_timer !== 0 ){
+            //TODO: Play a sound when timer is non-zero
         }
     }
     

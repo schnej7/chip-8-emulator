@@ -1,19 +1,20 @@
-var canvas;
+//var canvas;
 var context;
-var imageData;
+//TODO: imageData unused
+//var imageData;
 var colorOn = "#FFF";
 var colorOff = "#000";
 
 function canvasInit(){
     console.log("starting");
 
-    //Initalize the canvas
-    canvas = document.getElementById("myCanvas");
+    //Initialize the canvas
+    var canvas = document.getElementById("myCanvas");
     context = canvas.getContext("2d");
 
     width = canvas.width;
     height = canvas.height;
-    imageData = context.createImageData(width, height);
+    //imageData = context.createImageData(width, height);
 
     clearScreen();
 };
@@ -23,7 +24,8 @@ window.onload = function() {
     canvasInit();
 };
 
-//maps keycodes (uppercase) to chip8 keys
+//Maps keycodes (uppercase) to chip8 keys
+//TODO: GUI to set keyMap
 var keyMap = {
     49: 0x1,
     50: 0x2,
