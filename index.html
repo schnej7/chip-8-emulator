@@ -2,6 +2,9 @@
 <html>
     <head>
         <meta http-equiv="Content-Type" content="text/html;charset=utf-8">
+        <script src='js/jquery.js'></script>
+        <script src='js/bootstrap.js'></script>
+        <script src='js/bootstrap-transitions.js'></script>
         <script src='js/animate.js'></script>
         <script src='js/emulator.js'></script>
         <script src='js/fileHelper.js'></script>
@@ -20,6 +23,20 @@
                         <p>Your browser does not support html5!</p>
                     </canvas>    
                 </div>
+                <br />
+                <div class="canvasWidth center centered accordion alert alert-info" id="accordion">
+                    <div class="accordion-heading">
+                        <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion" href="#debug">
+                            Debug Menu
+                        </a>
+                    </div>
+                    <div id="debug" class="accordion-body collapse">
+                        <div style="height: 50px;">
+                            <button id="enableConsole" class="btn btn-info" type="button" onclick="enableConsole()">Enable Console</button>
+                        </div>
+                    </div>
+                </div>
+                <br />
                 <div class="row">
                     <div class="offset2 span3">
                         <div class="input-append">

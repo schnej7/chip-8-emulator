@@ -71,6 +71,23 @@ document.onkeydown = function(evt){
     }
 };
 
+function enableConsole(){
+    if( !chip8.debug ){
+        var classname = document.getElementById("enableConsole").className;
+        classname += 'btn-warning';
+        document.getElementById("enableConsole").className = classname.replace('btn-info', '');
+        document.getElementById("enableConsole").innerHTML = "Disable Console";
+        chip8.debug = true;
+    }
+    else{
+        var classname = document.getElementById("enableConsole").className;
+        classname += 'btn-info';
+        document.getElementById("enableConsole").className = classname.replace('btn-warning', '');
+        document.getElementById("enableConsole").innerHTML = "Enable Console";
+        chip8.debug = false;
+    }
+};
+
 var rsize = 12;
 function drawPixel( X, Y, value ){
     context.fillStyle = value ? colorOn : colorOff;

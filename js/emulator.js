@@ -29,6 +29,9 @@ chip8.chip8_fontset = [
   0xF0, 0x80, 0xF0, 0x80, 0x80  // F
 ];
 
+//Print debug messages if true
+chip8.debug = false;
+
 //The current opcode
 chip8.opcode;
 
@@ -450,7 +453,9 @@ chip8.emulateCycle = function(){
     //(we should sort out its dependents and make it local)
     opcode = this.memoryView[this.pc] << 8 | this.memoryView[this.pc+1];
 
-    //console.log("memory[" + pc.toString(16) + "] === " + opcode.toString(16));
+    if(this.debug){
+        console.log("memory[" + this.pc.toString(16) + "] === " + opcode.toString(16));
+    }
     //Decode and execute opcode
     this.decodeAndExecute( opcode );
 

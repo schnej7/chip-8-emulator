@@ -1,3 +1,24 @@
+.debug{
+    padding: 5px;
+}
+
+.floated{
+    float: left;
+}
+
+.canvasWidth{
+    width: 768px;
+}
+
+.hidden{
+    display: none;
+}
+
+.centered{
+    margin-left: auto;
+    margin-right: auto;
+}
+
 .main{
     margin: 10px;
 }
