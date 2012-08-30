@@ -35,9 +35,6 @@ chip8.opcode;
 //The timeout between emulation cycles
 chip8.timeout = 0;
 
-//If the game is paused on input
-chip8.paused = false;
-
 //4k memory
 // 0x000-0x1FF - Chip 8 interpreter (contains font set in emu)
 // 0x050-0x0A0 - Used for the built in 4x5 pixel font set (0-F)
@@ -92,7 +89,7 @@ chip8.memoryInit = function(){
 
     //Set all pixels to 0
     for( var k = 0; k < 64 * 32; k++ ){
-        this.pixels[k] = 0;
+        this.pixels[k] = false;
     }
     this.bDisplayUpdate = true;
 
@@ -106,9 +103,10 @@ chip8.memoryInit = function(){
     this.loadFontset();
 };
 
+//TODO: What is this used for?
 chip8.compare = function( array1, array2 ){
     for( var i = 0; i < array1.length; i++ ){
-        if( array1[i] != array2[i] ){
+        if( array1[i] !== array2[i] ){
             return false;
         }
     }
@@ -124,10 +122,10 @@ chip8.decodeAndExecute = function( opcode ){
                 case 0x0000:    // 0x00E0: clear the screen
                     //console.log("cls");
                     for( var k = 0; k < this.pixels.length; k++ ){
-                        this.pixels[k] = 0;
-                        clearScreen();
-                        this.bDisplayUpdate = true;
+                        this.pixels[k] = false;
                     }
+                    this.bDisplayUpdate = true;
+                    clearScreen();
                     this.pc += 2;
                 break;
 
@@ -154,7 +152,7 @@ chip8.decodeAndExecute = function( opcode ){
 
         case 0x3000:    // 3XNN: Skips the next instrouction if VX equals NN
             //console.log("VX: " + V[ (0x0F00 & opcode) >> 8 ].toString(16) + "; NN: " + (0x00FF & opcode).toString(16) );
-            if( this.V[ (0x0F00 & opcode) >> 8 ] == (0x00FF & opcode) ){
+            if( this.V[ (0x0F00 & opcode) >> 8 ] === (0x00FF & opcode) ){
                 //console.log("skipped");
                 this.pc += 4;
             }
@@ -165,7 +163,7 @@ chip8.decodeAndExecute = function( opcode ){
 
         case 0x4000:    // 4XNN: Skips the next instrouction if VX does not equal NN
             //console.log("VX: " + V[ (0x0F00 & opcode) >> 8 ].toString(16) + "; NN: " + (0x00FF & opcode).toString(16) );
-            if( this.V[ (0x0F00 & opcode) >> 8 ] != (0x00FF & opcode) ){
+            if( this.V[ (0x0F00 & opcode) >> 8 ] !== (0x00FF & opcode) ){
                 //console.log("skipped");
                 this.pc += 4;
             }
@@ -176,7 +174,7 @@ chip8.decodeAndExecute = function( opcode ){
 
         case 0x5000:    // 5XY0: Skips the next instrouction if VX equals VY
             //console.log("VX: " + V[ (0x0F00 & opcode) >> 8 ].toString(16) + "; VY: " + V[ (0x00F0 & opcode) >> 4 ].toString(16) );
-            if( this.V[ (0x0F00 & opcode) >> 8 ] == this.V[ (0x00F0 & opcode) >> 4 ] ){
+            if( this.V[ (0x0F00 & opcode) >> 8 ] === this.V[ (0x00F0 & opcode) >> 4 ] ){
                 //console.log("skipped");
                 this.pc += 4;
             }
@@ -271,7 +269,7 @@ chip8.decodeAndExecute = function( opcode ){
 
         case 0x9000:    // Skips the next instruction if VX doesn't equal VY
             //console.log("VX: " + V[ (0x0F00 & opcode) >> 8 ].toString(16) + "; VY: " + V[ (0x00F0 & opcode) >> 4 ].toString(16) );
-            if( this.V[ (0x0F00 & opcode) >> 8 ] != this.V[ (0x00F0 & opcode) >> 4 ] ){
+            if( this.V[ (0x0F00 & opcode) >> 8 ] !== this.V[ (0x00F0 & opcode) >> 4 ] ){
                 //console.log("skipped");
                 this.pc += 4;
             }
@@ -312,18 +310,15 @@ chip8.decodeAndExecute = function( opcode ){
                 for( var vline = 0; vline < 8; vline++ ){
                     //If the sprite specifies a difference at this pixel
                     if( spriteRow & (0x80 >> vline) ){
-                        //Check if the bit is on, then flip it
-                        if( this.pixels[ ((Y + hline) * 64) %( 64*32 ) + (X + vline) % 64 ] ){
-                            this.V[0xF] = 1;
-                            this.pixels[ ((Y + hline) * 64) %( 64*32 ) + (X + vline) % 64 ] = 0;
-                            drawPixel((X + vline) % 64, (Y + hline) % 32, false);
-                            this.bDisplayUpdate = true;
-                        }
-                        else{
-                            this.pixels[ ((Y + hline) * 64) %( 64*32 ) + (X + vline) % 64 ] = 1;
-                            drawPixel((X + vline) % 64, (Y + hline) % 32, true);
-                            this.bDisplayUpdate = true;
-                        }
+                        var pixelIndex = ((Y + hline) * 64) %( 64*32 ) + (X + vline) % 64;
+                        //flip the bit
+                        var bit = !this.pixels[ pixelIndex ];
+                        this.pixels[ pixelIndex ] = bit;
+                        //update the display
+                        drawPixel((X + vline) % 64, (Y + hline) % 32, bit);
+                        this.bDisplayUpdate = true;
+                        //if the bit was reset, set VF
+                        bit || (this.V[0xF] = 1);
                     }
                 }
             }
@@ -370,7 +365,6 @@ chip8.decodeAndExecute = function( opcode ){
 
                 case 0x000A:    // FX0A: A key press is awaited, and then stored in VX
                     this.bWaitingForKey = true;
-                    this.paused = true;
                 break;
 
                 case 0x0015:    // FX15: Sets the delay timer to VX
@@ -409,9 +403,10 @@ chip8.decodeAndExecute = function( opcode ){
                                 //       the middle digit at I plus 1, 
                                 //       and the least significant digit at I plus 2
                     //console.log("Store each decimal");
-                    this.memoryView[this.I]     = Math.floor(this.V[(opcode & 0x0F00) >> 8] / 100);
-                    this.memoryView[this.I + 1] = Math.floor((this.V[(opcode & 0x0F00) >> 8] / 10)) % 10;
-                    this.memoryView[this.I + 2] = (this.V[(opcode & 0x0F00) >> 8] % 100) % 10;
+                    var VX = this.V[(opcode & 0x0F00) >> 8]
+                    this.memoryView[this.I]     = Math.floor( VX / 100);
+                    this.memoryView[this.I + 1] = Math.floor( VX / 10) % 10;
+                    this.memoryView[this.I + 2] = VX % 10;
                     this.pc += 2;
                 break;
 
@@ -451,45 +446,51 @@ chip8.fullRender = function(){
 
 chip8.emulateCycle = function(){
     //Fetch opcode, instructions are 2 bytes long
+    //TODO: opcode is a free variable, AKA global
+    //(we should sort out its dependents and make it local)
     opcode = this.memoryView[this.pc] << 8 | this.memoryView[this.pc+1];
 
-    //console.log("memory[" + pc.toString(16) + "] == " + opcode.toString(16));
+    //console.log("memory[" + pc.toString(16) + "] === " + opcode.toString(16));
     //Decode and execute opcode
     this.decodeAndExecute( opcode );
 
-    if( !this.paused ){
+    if( !this.bWaitingForKey ){
         //Update timers
         if( this.delay_timer > 0 ){
             this.delay_timer--;
+            //TODO: What happens here?
         }
         if( this.sound_timer > 0 ){
             this.sound_timer--;
+            if( this.sound_timer !== 0 ){
+                //TODO: Play a sound when timer is non-zero
+            }
         }
         //Get input
 
         //Execute next instruction
         var _this = this;
-        setTimeout( function(){_this.emulateCycle()}, this.timeout );
+        this.timer = setTimeout( function(){_this.emulateCycle()}, this.timeout );
     }
 };
 
+//TODO: Condense similar code with emulateCycle
 chip8.emulateCycleSecondHalf = function( key ){
-
     if(this.bWaitingForKey){
         this.V[ (0x0F00 & opcode) >> 8 ] = key;
         this.pc += 2;
+        this.bWaitingForKey = false;
     }
-
-    this.paused = false;
 
     //Update timers
     if( this.delay_timer > 0 ){
         this.delay_timer--;
+        //TODO: What happens here?
     }
     if( this.sound_timer > 0 ){
         this.sound_timer--;
-        if( this.sound_timer === 0 ){
-            //TODO: Play a sound here
+        if( this.sound_timer !== 0 ){
+            //TODO: Play a sound when timer is non-zero
         }
     }
     
@@ -497,23 +498,20 @@ chip8.emulateCycleSecondHalf = function( key ){
 
     //Execute next instruction
     var _this = this;
-    setTimeout( function(){_this.emulateCycle()}, this.timeout );
+    this.timer = setTimeout( function(){_this.emulateCycle()}, this.timeout );
 };
 
 //Load the game into the emulator memory
-chip8.loadGame = function(){
-    for( var i = 0; i < romFile.byteLength; i++ ){
-        this.memoryView[0x200 + i] = romFile[i];
-    }
-};
-
-chip8.gameSelected = function(){
-    //Clean slate
+chip8.loadGame = function( romFile ){
+    //Clear existing timers, memory, and screen
+    clearTimeout( this.timer );
     this.memoryInit();
     clearScreen();
 
     //Load the game into memory
-    this.loadGame();
+    for( var i = 0; i < romFile.byteLength; i++ ){
+        this.memoryView[0x200 + i] = romFile[i];
+    }
     console.log('beginning emulation');
 
     //Emulation loop
