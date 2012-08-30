@@ -1,4 +1,4 @@
-var romFile;
+//var romFile;
 
 function enableFileSelection(){
     // Check for the various File API support.
@@ -22,8 +22,8 @@ function handleFileSelect(evt) {
 
     fileReader.onload = (function(theFile) {
         return function(e) {
-            romFile = new Uint8Array(e.target.result, 0);
-            chip8.gameSelected();
+            var romFile = new Uint8Array(e.target.result, 0);
+            chip8.loadGame( romFile );
         };
     })(file);
 
