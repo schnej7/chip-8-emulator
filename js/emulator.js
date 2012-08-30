@@ -35,9 +35,6 @@ chip8.opcode;
 //The timeout between emulation cycles
 chip8.timeout = 0;
 
-//If the game is paused on input
-chip8.paused = false;
-
 //4k memory
 // 0x000-0x1FF - Chip 8 interpreter (contains font set in emu)
 // 0x050-0x0A0 - Used for the built in 4x5 pixel font set (0-F)
@@ -368,7 +365,6 @@ chip8.decodeAndExecute = function( opcode ){
 
                 case 0x000A:    // FX0A: A key press is awaited, and then stored in VX
                     this.bWaitingForKey = true;
-                    this.paused = true;
                 break;
 
                 case 0x0015:    // FX15: Sets the delay timer to VX
@@ -458,7 +454,7 @@ chip8.emulateCycle = function(){
     //Decode and execute opcode
     this.decodeAndExecute( opcode );
 
-    if( !this.paused ){
+    if( !this.bWaitingForKey ){
         //Update timers
         if( this.delay_timer > 0 ){
             this.delay_timer--;
@@ -480,17 +476,11 @@ chip8.emulateCycle = function(){
 
 //TODO: Condense similar code with emulateCycle
 chip8.emulateCycleSecondHalf = function( key ){
-    //TODO: Do bWaitingForKey and paused mean the same thing?
     if(this.bWaitingForKey){
         this.V[ (0x0F00 & opcode) >> 8 ] = key;
         this.pc += 2;
-        //TODO: This line fixes the INVADERS second round glitch,
-        // bWaitingForKey remained set after its first use (GAMEOVER screen),
-        // is there any need for paused now?
         this.bWaitingForKey = false;
     }
-
-    this.paused = false;
 
     //Update timers
     if( this.delay_timer > 0 ){
