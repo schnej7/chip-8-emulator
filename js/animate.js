@@ -1,7 +1,5 @@
 //var canvas;
 var context;
-//TODO: imageData unused
-//var imageData;
 var colorOn = "#FFF";
 var colorOff = "#000";
 
@@ -14,7 +12,6 @@ function canvasInit(){
 
     width = canvas.width;
     height = canvas.height;
-    //imageData = context.createImageData(width, height);
 
     clearScreen();
 };
