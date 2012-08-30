@@ -458,12 +458,12 @@ chip8.emulateCycle = function(){
         //Update timers
         if( this.delay_timer > 0 ){
             this.delay_timer--;
-            //TODO: What happens here?
+            //Nothing happens here, it is a register than can be checked by the program
         }
         if( this.sound_timer > 0 ){
             this.sound_timer--;
-            if( this.sound_timer !== 0 ){
-                //TODO: Play a sound when timer is non-zero
+            if( this.sound_timer === 0 ){
+                //TODO: Play a sound when timer reaches zero from non-zero
             }
         }
         //Get input
@@ -485,12 +485,12 @@ chip8.emulateCycleSecondHalf = function( key ){
     //Update timers
     if( this.delay_timer > 0 ){
         this.delay_timer--;
-        //TODO: What happens here?
+        //Nothing happens here, it is a register than can be checked by the program
     }
     if( this.sound_timer > 0 ){
         this.sound_timer--;
-        if( this.sound_timer !== 0 ){
-            //TODO: Play a sound when timer is non-zero
+        if( this.sound_timer === 0 ){
+            //TODO: Play a sound when timer reaches zero from non-zero
         }
     }
     
