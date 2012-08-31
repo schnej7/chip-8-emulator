@@ -77,14 +77,14 @@ function enableConsole(){
         classname += 'btn-warning';
         document.getElementById("enableConsole").className = classname.replace('btn-info', '');
         document.getElementById("enableConsole").innerHTML = "Disable Console";
-        chip8.debug = true;
+        chip8.enableDebug(true);
     }
     else{
         var classname = document.getElementById("enableConsole").className;
         classname += 'btn-info';
         document.getElementById("enableConsole").className = classname.replace('btn-warning', '');
         document.getElementById("enableConsole").innerHTML = "Enable Console";
-        chip8.debug = false;
+        chip8.enableDebug(false);
     }
 };
 

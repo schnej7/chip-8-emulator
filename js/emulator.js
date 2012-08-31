@@ -32,6 +32,16 @@ chip8.chip8_fontset = [
 //Print debug messages if true
 chip8.debug = false;
 
+chip8.enableDebug = function( isEnabled ){
+    this.debug = isEnabled;
+    if( isEnabled ){
+        for( var i = 0; i < this.V.length; i++ ){
+            var regName = "V" + i.toString(16).toUpperCase();
+            document.getElementById( regName ).innerHTML = regName + ": " + this.V[i];
+        }
+    }
+}
+
 //The current opcode
 chip8.opcode;
 
@@ -116,6 +126,14 @@ chip8.compare = function( array1, array2 ){
     return true;
 };
 
+chip8.updateReg = function( reg, value ){
+    this.V[reg] = value;
+    if( this.debug ){
+        var regName = "V" + reg.toString(16).toUpperCase();
+        document.getElementById( regName ).innerHTML = regName + ": " + value;
+    }
+}
+
 chip8.decodeAndExecute = function( opcode ){
     switch( opcode & 0xF000 ){
 
@@ -156,7 +174,6 @@ chip8.decodeAndExecute = function( opcode ){
         case 0x3000:    // 3XNN: Skips the next instrouction if VX equals NN
             //console.log("VX: " + V[ (0x0F00 & opcode) >> 8 ].toString(16) + "; NN: " + (0x00FF & opcode).toString(16) );
             if( this.V[ (0x0F00 & opcode) >> 8 ] === (0x00FF & opcode) ){
-                //console.log("skipped");
                 this.pc += 4;
             }
             else{
@@ -188,80 +205,70 @@ chip8.decodeAndExecute = function( opcode ){
 
         case 0x6000:    // 6XNN: Sets VX to NN
             //console.log("VX = " + (0x00FF & opcode).toString(16) );
-            this.V[ (0x0F00 & opcode) >> 8 ] = 0x00FF & opcode;
+            this.updateReg( (0x0F00 & opcode) >> 8, 0x00FF & opcode );
             this.pc += 2;
         break;
 
         case 0x7000:    // 7XNN: Adds NN to VX
             //console.log("VX += " + (0x00FF & opcode).toString(16) );
-            this.V[ (0x0F00 & opcode) >> 8 ] += 0x00FF & opcode;
-            this.V[ (0x0F00 & opcode) >> 8 ] = this.V[ (0x0F00 & opcode) >> 8 ] & 0x00FF;
+            this.updateReg( (0x0F00 & opcode) >> 8, (this.V[ (0x0F00 & opcode) >> 8 ] + (0x00FF & opcode)) & 0x00FF );
             this.pc += 2;
         break;
 
         case 0x8000:    // 8---: more decoding
             switch( opcode & 0x000F ){
                 case 0x0000:    // 8XY0: Sets VX to the value of VY
-                    //console.log("VX = VY");
-                    this.V[ (0x0F00 & opcode) >> 8 ] = this.V[ (0x00F0 & opcode) >> 4 ];
+                    this.updateReg( (0x0F00 & opcode) >> 8, this.V[ (0x00F0 & opcode) >> 4 ] );
                     this.pc += 2;
                 break;
 
                 case 0x0001:    // 8XY1: Sets VX to VX | VY
-                    //console.log("VX = VX | VY");
-                    this.V[ (0x0F00 & opcode) >> 8 ] = this.V[ (0x0F00 & opcode) >> 8 ] | this.V[ (0x00F0 & opcode) >> 4 ];
+                    this.updateReg( (0x0F00 & opcode) >> 8, this.V[ (0x0F00 & opcode) >> 8 ] | this.V[ (0x00F0 & opcode) >> 4 ] );
                     this.pc += 2;
                 break;
 
                 case 0x0002:    // 8XY2: Sets VX to VX & VY
-                    //console.log("VX = VX & VY");
-                    this.V[ (0x0F00 & opcode) >> 8 ] = this.V[ (0x0F00 & opcode) >> 8 ] & this.V[ (0x00F0 & opcode) >> 4 ];
+                    this.updateReg( (0x0F00 & opcode) >> 8, this.V[ (0x0F00 & opcode) >> 8 ] & this.V[ (0x00F0 & opcode) >> 4 ] );
                     this.pc += 2;
                 break;
 
                 case 0x0003:    // 8XY3: Sets VX to VX XOR VY
-                    //console.log("VX = VX ^ VY");
-                    this.V[ (0x0F00 & opcode) >> 8 ] = this.V[ (0x0F00 & opcode) >> 8 ] ^ this.V[ (0x00F0 & opcode) >> 4 ];
+                    this.updateReg( (0x0F00 & opcode) >> 8, this.V[ (0x0F00 & opcode) >> 8 ] ^ this.V[ (0x00F0 & opcode) >> 4 ] );
                     this.pc += 2;
                 break;
 
                 case 0x0004:    // 8XY4: Adds VY to VX. VF is set to 1 when there's a carry, and to 0 when there isn't
-                    //console.log("VX += VX + VY");
-                    this.V[ (0x0F00 & opcode) >> 8 ] = this.V[ (0x0F00 & opcode) >> 8 ] + this.V[ (0x00F0 & opcode) >> 4 ];
-                    this.V[ 0xF ] = ( this.V[ (0x0F00 & opcode) >> 8 ] & 0x100 ) >> 8;
-                    this.V[ (0x0F00 & opcode) >> 8 ] = this.V[ (0x0F00 & opcode) >> 8 ] & 0x00FF;
+                    this.updateReg( (0x0F00 & opcode) >> 8, this.V[ (0x0F00 & opcode) >> 8 ] + this.V[ (0x00F0 & opcode) >> 4 ] );
+                    this.updateReg( 0xF, ( this.V[ (0x0F00 & opcode) >> 8 ] & 0x100 ) >> 8 );
+                    this.updateReg( (0x0F00 & opcode) >> 8, this.V[ (0x0F00 & opcode) >> 8 ] & 0x00FF );
                     this.pc += 2;
                 break;
 
                 case 0x0005:    // 8XY5: VY is subtracted from VX. VF is set to 0 when there's a borrow, and 1 when there isn't
-                    //console.log("VX += VX - VY");
-                    this.V[ (0x0F00 & opcode) >> 8 ] += 0x100;
-                    this.V[ (0x0F00 & opcode) >> 8 ] = this.V[ (0x0F00 & opcode) >> 8 ] - this.V[ (0x00F0 & opcode) >> 4 ];
-                    this.V[ 0xF ] = (this.V[ (0x0F00 & opcode) >> 8 ] & 0x100) >> 8;
-                    this.V[ (0x0F00 & opcode) >> 8 ] = this.V[ (0x0F00 & opcode) >> 8 ] & 0x00FF;
+                    this.updateReg( (0x0F00 & opcode) >> 8, this.V[ (0x0F00 & opcode) >> 8 ] + 0x100 );
+                    this.updateReg( (0x0F00 & opcode) >> 8, this.V[ (0x0F00 & opcode) >> 8 ] - this.V[ (0x00F0 & opcode) >> 4 ] );
+                    this.updateReg( 0xF, (this.V[ (0x0F00 & opcode) >> 8 ] & 0x100) >> 8 );
+                    this.updateReg( (0x0F00 & opcode) >> 8, this.V[ (0x0F00 & opcode) >> 8 ] & 0x00FF );
                     this.pc += 2;
                 break;
 
                 case 0x0006:    // 8XY6: Shifts VX right by one. VF is set to the value of the least significant bit of VX before the shift
-                    //console.log("VX >> 1");
-                    this.V[ 0xF ] = this.V[ (0x0F00 & opcode) >> 8 ] & 0x1;
-                    this.V[ (0x0F00 & opcode) >> 8 ] = this.V[ (0x0F00 & opcode) >> 8 ] >> 1;
+                    this.updateReg( 0xF, this.V[ (0x0F00 & opcode) >> 8 ] & 0x1 );
+                    this.updateReg( (0x0F00 & opcode) >> 8, this.V[ (0x0F00 & opcode) >> 8 ] >> 1 );
                     this.pc += 2;
                 break;
 
                 case 0x0007:    // 8XY7: Sets VX to VY minus VX. VF is set to 0 when there's a borrow, and 1 when there isn't
-                    //console.log("VX += VY - VX");
-                    this.V[ (0x00F0 & opcode) >> 4 ] += 0x100;
-                    this.V[ (0x0F00 & opcode) >> 8 ] = this.V[ (0x00F0 & opcode) >> 4 ] - this.V[ (0x0F00 & opcode) >> 8 ];
-                    this.V[ 0xF ] = (this.V[ (0x00F0 & opcode) >> 4 ] & 0x100) >> 8;
-                    this.V[ (0x00F0 & opcode) >> 4 ] = this.V[ (0x00F0 & opcode) >> 4 ] & 0x00FF;
+                    this.updateReg( (0x00F0 & opcode) >> 4, this.V[ (0x00F0 & opcode) >> 4 ] + 0x100 );
+                    this.updateReg( (0x0F00 & opcode) >> 8, this.V[ (0x00F0 & opcode) >> 4 ] - this.V[ (0x0F00 & opcode) >> 8 ] );
+                    this.updateReg( 0xF, (this.V[ (0x00F0 & opcode) >> 4 ] & 0x100) >> 8 );
+                    this.updateReg( (0x00F0 & opcode) >> 4, this.V[ (0x00F0 & opcode) >> 4 ] & 0x00FF );
                     this.pc += 2;
                 break;
 
                 case 0x000E:    // 8XYE: Shifts VX left by one. VF is set to the value of the most significant bit of VX before the shift
-                    //console.log("VX << 1");
-                    this.V[ 0xF ] = this.V[ (0x0F00 & opcode) >> 8 ] & 0x80;
-                    this.V[ (0x0F00 & opcode) >> 8 ] = this.V[ (0x0F00 & opcode) >> 8 ] << 1;
+                    this.updateReg( 0xF, this.V[ (0x0F00 & opcode) >> 8 ] & 0x80 );
+                    this.updateReg( (0x0F00 & opcode) >> 8, this.V[ (0x0F00 & opcode) >> 8 ] << 1 );
                     this.pc += 2;
                 break;
 
@@ -293,8 +300,7 @@ chip8.decodeAndExecute = function( opcode ){
         break;
 
         case 0xC000:    // CXNN: Sets VX to a random number & NN
-            this.V[ (0x0F00 & opcode) >> 8 ] = ( Math.random() * 0x80 ) & ( opcode & 0x00FF );
-            //console.log("random VX = " + V[ (0x0F00 & opcode) >> 8 ].toString(16) );
+            this.updateReg( (0x0F00 & opcode) >> 8, ( Math.random() * 0x80 ) & ( opcode & 0x00FF ) );
             this.pc += 2;
         break;
 
@@ -307,7 +313,7 @@ chip8.decodeAndExecute = function( opcode ){
             var Y = this.V[(opcode & 0x00F0) >> 4];
             var spriteHeight = opcode & 0x000F;
 
-            this.V[0xF] = 0;
+            this.updateReg( 0xF, 0 );
             for( var hline = 0; hline < spriteHeight; hline++ ){
                 var spriteRow = this.memoryView[ this.I + hline ];
                 for( var vline = 0; vline < 8; vline++ ){
@@ -321,11 +327,10 @@ chip8.decodeAndExecute = function( opcode ){
                         drawPixel((X + vline) % 64, (Y + hline) % 32, bit);
                         this.bDisplayUpdate = true;
                         //if the bit was reset, set VF
-                        bit || (this.V[0xF] = 1);
+                        bit || (this.updateReg( 0xF, 1 ) );
                     }
                 }
             }
-            //console.log(V[0xF]);
             this.pc += 2;
         break;
 
@@ -361,8 +366,7 @@ chip8.decodeAndExecute = function( opcode ){
             switch( opcode & 0x00FF ){
 
                 case 0x0007:    // FX07: Sets VX to the value of the delay timer
-                    //console.log("VX = delay_timer");
-                    this.V[ (0x0F00 & opcode) >> 8 ] = this.delay_timer;
+                    this.updateReg( (0x0F00 & opcode) >> 8, this.delay_timer );
                     this.pc += 2;
                 break;
 
@@ -386,10 +390,10 @@ chip8.decodeAndExecute = function( opcode ){
                     //console.log("I = I + VX");
                     this.I += this.V[ (0x0F00 & opcode) >> 8 ];
                     if( this.I & 0xF000 ){
-                        this.V[ 0xF ] = 1;
+                        this.updateReg( 0xF, 1 );
                     }
                     else{
-                        this.V[ 0xF ] = 0;
+                        this.updateReg( 0xF, 0 );
                     }
                     this.I = this.I & 0x0FFF;
                     this.pc += 2;
@@ -426,7 +430,7 @@ chip8.decodeAndExecute = function( opcode ){
                     //console.log("get all registers from memory");
                     X = (opcode & 0x0F00) >> 8;
                     for( var i = 0; i <= X; i++ ){
-                        this.V[i] = this.memoryView[this.I+i];
+                        this.updateReg( i, this.memoryView[this.I+i] );
                     }
                     this.pc += 2;
                 break;
@@ -482,7 +486,7 @@ chip8.emulateCycle = function(){
 //TODO: Condense similar code with emulateCycle
 chip8.emulateCycleSecondHalf = function( key ){
     if(this.bWaitingForKey){
-        this.V[ (0x0F00 & opcode) >> 8 ] = key;
+        this.updateReg( (0x0F00 & opcode) >> 8, key );
         this.pc += 2;
         this.bWaitingForKey = false;
     }
