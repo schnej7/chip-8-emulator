@@ -21,6 +21,7 @@ function canvasInit(){
 
 window.onload = function() {
     enableFileSelection();
+    populateDropdown();
     canvasInit();
     chip8.setTimerRate(60);
 };

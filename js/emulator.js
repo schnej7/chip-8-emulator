@@ -506,8 +506,15 @@ chip8.loadGame = function( romFile ){
     clearScreen();
 
     //Load the game into memory
-    for( var i = 0; i < romFile.byteLength; i++ ){
-        this.memoryView[0x200 + i] = romFile[i];
+    if( typeof romFile === 'string' ){
+        for( var i = 0; i < romFile.length; i++ ){
+            this.memoryView[0x200 + i] = romFile.charCodeAt(i);
+        }
+    } else
+    {
+        for( var i = 0; i < romFile.byteLength; i++ ){
+            this.memoryView[0x200 + i] = romFile[i];
+        }
     }
     console.log('beginning emulation');
 
