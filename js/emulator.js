@@ -142,7 +142,7 @@ chip8.decodeAndExecute = function( opcode ){
         case 0x1000:    // 1NNN: Jumps to address NNN
             //console.log("jump to " + (0x0FFF & opcode).toString(16));
             this.pc = 0x0FFF & opcode;
-        break
+        break;
 
         case 0x2000:    // 2NNN: Calls subroutine at address NNN
             //console.log("call subroutine at " + (0x0FFF & opcode).toString(16));
@@ -242,7 +242,7 @@ chip8.decodeAndExecute = function( opcode ){
                 case 0x0006:    // 8XY6: Shifts VX right by one. VF is set to the value of the least significant bit of VX before the shift
                     //console.log("VX >> 1");
                     this.V[ 0xF ] = this.V[ (0x0F00 & opcode) >> 8 ] & 0x1;
-                    this.V[ (0x0F00 & opcode) >> 8 ] = this.V[ (0x0F00 & opcode) >> 8 ] >> 1;
+                    this.V[ (0x0F00 & opcode) >> 8 ] >>= 1;
                     this.pc += 2;
                 break;
 
@@ -337,7 +337,7 @@ chip8.decodeAndExecute = function( opcode ){
                     else{
                         this.pc += 2;
                     }
-                break
+                break;
 
                 case 0x00A1:    // EXA1: Skips the next instruction if the key stored in VX isn't pressed
                     if( !this.keys[ this.V[ (opcode & 0x0F00) >> 8 ] ] ){
@@ -455,37 +455,34 @@ chip8.emulateCycle = function(){
     this.decodeAndExecute( opcode );
 
     if( !this.bWaitingForKey ){
-        //Update timers
-        if( this.delay_timer > 0 ){
-            this.delay_timer--;
-            //TODO: What happens here?
-        }
-        if( this.sound_timer > 0 ){
-            this.sound_timer--;
-            if( this.sound_timer !== 0 ){
-                //TODO: Play a sound when timer is non-zero
-            }
-        }
         //Get input
 
         //Execute next instruction
         var _this = this;
-        this.timer = setTimeout( function(){_this.emulateCycle()}, this.timeout );
+        this.tick = setTimeout( function(){_this.emulateCycle()}, this.timeout );
     }
 };
 
 //TODO: Condense similar code with emulateCycle
 chip8.emulateCycleSecondHalf = function( key ){
+    //TODO: should only be called when bWaitingForKey is set anyway
     if(this.bWaitingForKey){
         this.V[ (0x0F00 & opcode) >> 8 ] = key;
         this.pc += 2;
         this.bWaitingForKey = false;
     }
+    
+    //Get input
 
+    //Execute next instruction
+    var _this = this;
+    this.tick = setTimeout( function(){_this.emulateCycle()}, this.timeout );
+};
+
+chip8.updateTimers = function(){
     //Update timers
     if( this.delay_timer > 0 ){
         this.delay_timer--;
-        //TODO: What happens here?
     }
     if( this.sound_timer > 0 ){
         this.sound_timer--;
@@ -493,18 +490,18 @@ chip8.emulateCycleSecondHalf = function( key ){
             //TODO: Play a sound when timer is non-zero
         }
     }
-    
-    //Get input
+};
 
-    //Execute next instruction
+chip8.setTimerRate = function(hz){
+    clearInterval( this.event_timer );
     var _this = this;
-    this.timer = setTimeout( function(){_this.emulateCycle()}, this.timeout );
+    this.event_timer = setInterval( function(){_this.updateTimers()}, 1000 / hz );
 };
 
 //Load the game into the emulator memory
 chip8.loadGame = function( romFile ){
-    //Clear existing timers, memory, and screen
-    clearTimeout( this.timer );
+    //Clear existing tick, memory, and screen
+    clearTimeout( this.tick );
     this.memoryInit();
     clearScreen();
 
