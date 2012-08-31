@@ -88,6 +88,28 @@ function enableConsole(){
     }
 };
 
+
+function pauseEmulation(){
+    if( !chip8.paused ){
+        var classname = document.getElementById("pause").className;
+        classname += 'btn-warning';
+        document.getElementById("pause").className = classname.replace('btn-info', '');
+        document.getElementById("pause").innerHTML = "Resume";
+        chip8.pause(true);
+    }
+    else{
+        var classname = document.getElementById("pause").className;
+        classname += 'btn-info';
+        document.getElementById("pause").className = classname.replace('btn-warning', '');
+        document.getElementById("pause").innerHTML = "Pause";
+        chip8.pause(false);
+    }
+};
+
+function step(){
+    chip8.step();
+};
+
 var rsize = 12;
 function drawPixel( X, Y, value ){
     context.fillStyle = value ? colorOn : colorOff;

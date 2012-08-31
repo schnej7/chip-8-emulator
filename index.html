@@ -31,41 +31,55 @@
                         </a>
                     </div>
                     <div id="debug" class="accordion-body collapse">
-                        <div style="height: 50px;">
-                            <button id="enableConsole" class="btn btn-info" type="button" onclick="enableConsole()">Enable Console</button>
-                        </div>
-                        <div id="registers" class="row">
-                            <div id="V0" class="span2">
+                        <div id="registers" class="row-fluid">
+                            <div class="btn-group span4">
+                                <button id="enableConsole" class="btn btn-info" type="button" onclick="enableConsole()">Enable Console</button>
+                                <button id="pause" class="btn btn-info" type="button" onClick="pauseEmulation()">Pause</button>
+                                <button id="step" class="btn btn-info" type="button" onClick="step()">Step</button>
                             </div>
-                            <div id="V1" class="span2">
-                            </div>
-                            <div id="V2" class="span2">
-                            </div>
-                            <div id="V3" class="span2">
-                            </div>
-                            <div id="V4" class="span2">
-                            </div>
-                            <div id="V5" class="span2">
-                            </div>
-                            <div id="V6" class="span2">
-                            </div>
-                            <div id="V7" class="span2">
-                            </div>
-                            <div id="V8" class="span2">
-                            </div>
-                            <div id="V9" class="span2">
-                            </div>
-                            <div id="VA" class="span2">
-                            </div>
-                            <div id="VB" class="span2">
-                            </div>
-                            <div id="VC" class="span2">
-                            </div>
-                            <div id="VD" class="span2">
-                            </div>
-                            <div id="VE" class="span2">
-                            </div>
-                            <div id="VF" class="span2">
+                            <div class="span6">
+                                <table class="table">
+                                    <tr>
+                                        <td id="V0">
+                                        </td>
+                                        <td id="V1">
+                                        </td>
+                                        <td id="V2">
+                                        </td>
+                                        <td id="V3">
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td id="V4">
+                                        </td>
+                                        <td id="V5">
+                                        </td>
+                                        <td id="V6">
+                                        </td>
+                                        <td id="V7">
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td id="V8">
+                                        </td>
+                                        <td id="V9">
+                                        </td>
+                                        <td id="VA">
+                                        </td>
+                                        <td id="VB">
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td id="VC">
+                                        </td>
+                                        <td id="VD">
+                                        </td>
+                                        <td id="VE">
+                                        </td>
+                                        <td id="VF">
+                                        </td>
+                                    </tr>
+                                </table>
                             </div>
                         </div>
                     </div>

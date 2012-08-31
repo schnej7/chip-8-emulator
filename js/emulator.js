@@ -40,7 +40,26 @@ chip8.enableDebug = function( isEnabled ){
             document.getElementById( regName ).innerHTML = regName + ": " + this.V[i];
         }
     }
-}
+};
+
+chip8.paused = false;
+
+chip8.pause = function( isPaused ){
+    this.paused = isPaused;
+    if( isPaused ){
+       clearTimeout( this.timer );
+    } 
+    else{
+        var _this = this;
+        this.timer = setTimeout( function(){_this.emulateCycle()}, this.timeout );
+    }
+};
+
+chip8.step = function(){
+    if( this.paused ){
+        this.emulateCycle();
+    }
+};
 
 //The current opcode
 chip8.opcode;
@@ -114,16 +133,6 @@ chip8.memoryInit = function(){
 
     //Load Fontset
     this.loadFontset();
-};
-
-//TODO: What is this used for?
-chip8.compare = function( array1, array2 ){
-    for( var i = 0; i < array1.length; i++ ){
-        if( array1[i] !== array2[i] ){
-            return false;
-        }
-    }
-    return true;
 };
 
 chip8.updateReg = function( reg, value ){
@@ -471,15 +480,17 @@ chip8.emulateCycle = function(){
         }
         if( this.sound_timer > 0 ){
             this.sound_timer--;
-            if( this.sound_timer === 0 ){
-                //TODO: Play a sound when timer reaches zero from non-zero
+            if( this.sound_timer !== 0 ){
+                //TODO: Play a sound when timer is non-zero
             }
         }
         //Get input
 
         //Execute next instruction
-        var _this = this;
-        this.timer = setTimeout( function(){_this.emulateCycle()}, this.timeout );
+        if( !this.paused ){
+            var _this = this;
+            this.timer = setTimeout( function(){_this.emulateCycle()}, this.timeout );
+        }
     }
 };
 
@@ -498,16 +509,18 @@ chip8.emulateCycleSecondHalf = function( key ){
     }
     if( this.sound_timer > 0 ){
         this.sound_timer--;
-        if( this.sound_timer === 0 ){
-            //TODO: Play a sound when timer reaches zero from non-zero
+        if( this.sound_timer !== 0 ){
+            //TODO: Play a sound when timer is non-zero
         }
     }
     
     //Get input
 
     //Execute next instruction
-    var _this = this;
-    this.timer = setTimeout( function(){_this.emulateCycle()}, this.timeout );
+    if( !this.paused ){
+        var _this = this;
+        this.timer = setTimeout( function(){_this.emulateCycle()}, this.timeout );
+    }
 };
 
 //Load the game into the emulator memory
