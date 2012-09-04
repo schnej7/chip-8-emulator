@@ -47,11 +47,11 @@ chip8.paused = false;
 chip8.pause = function( isPaused ){
     this.paused = isPaused;
     if( isPaused ){
-       clearTimeout( this.timer );
+       clearTimeout( this.tick );
     } 
     else{
         var _this = this;
-        this.timer = setTimeout( function(){_this.emulateCycle()}, this.timeout );
+        this.tick = setTimeout( function(){_this.emulateCycle()}, this.timeout );
     }
 };
 
@@ -172,7 +172,7 @@ chip8.decodeAndExecute = function( opcode ){
         case 0x1000:    // 1NNN: Jumps to address NNN
             //console.log("jump to " + (0x0FFF & opcode).toString(16));
             this.pc = 0x0FFF & opcode;
-        break
+        break;
 
         case 0x2000:    // 2NNN: Calls subroutine at address NNN
             //console.log("call subroutine at " + (0x0FFF & opcode).toString(16));
@@ -354,7 +354,7 @@ chip8.decodeAndExecute = function( opcode ){
                     else{
                         this.pc += 2;
                     }
-                break
+                break;
 
                 case 0x00A1:    // EXA1: Skips the next instruction if the key stored in VX isn't pressed
                     if( !this.keys[ this.V[ (opcode & 0x0F00) >> 8 ] ] ){
@@ -472,36 +472,34 @@ chip8.emulateCycle = function(){
     //Decode and execute opcode
     this.decodeAndExecute( opcode );
 
-    if( !this.bWaitingForKey ){
-        //Update timers
-        if( this.delay_timer > 0 ){
-            this.delay_timer--;
-            //Nothing happens here, it is a register than can be checked by the program
-        }
-        if( this.sound_timer > 0 ){
-            this.sound_timer--;
-            if( this.sound_timer !== 0 ){
-                //TODO: Play a sound when timer is non-zero
-            }
-        }
+    if( !this.bWaitingForKey && !this.paused ){
         //Get input
 
         //Execute next instruction
-        if( !this.paused ){
-            var _this = this;
-            this.timer = setTimeout( function(){_this.emulateCycle()}, this.timeout );
-        }
+        var _this = this;
+        this.tick = setTimeout( function(){_this.emulateCycle()}, this.timeout );
     }
 };
 
 //TODO: Condense similar code with emulateCycle
 chip8.emulateCycleSecondHalf = function( key ){
+    //TODO: should only be called when bWaitingForKey is set anyway
     if(this.bWaitingForKey){
         this.updateReg( (0x0F00 & opcode) >> 8, key );
         this.pc += 2;
         this.bWaitingForKey = false;
     }
+    
+    if( !this.paused ){
+        //Get input
 
+        //Execute next instruction
+        var _this = this;
+        this.tick = setTimeout( function(){_this.emulateCycle()}, this.timeout );
+    }
+};
+
+chip8.updateTimers = function(){
     //Update timers
     if( this.delay_timer > 0 ){
         this.delay_timer--;
@@ -513,26 +511,31 @@ chip8.emulateCycleSecondHalf = function( key ){
             //TODO: Play a sound when timer is non-zero
         }
     }
-    
-    //Get input
+};
 
-    //Execute next instruction
-    if( !this.paused ){
-        var _this = this;
-        this.timer = setTimeout( function(){_this.emulateCycle()}, this.timeout );
-    }
+chip8.setTimerRate = function(hz){
+    clearInterval( this.event_timer );
+    var _this = this;
+    this.event_timer = setInterval( function(){_this.updateTimers()}, 1000 / hz );
 };
 
 //Load the game into the emulator memory
 chip8.loadGame = function( romFile ){
-    //Clear existing timers, memory, and screen
-    clearTimeout( this.timer );
+    //Clear existing tick, memory, and screen
+    clearTimeout( this.tick );
     this.memoryInit();
     clearScreen();
 
     //Load the game into memory
-    for( var i = 0; i < romFile.byteLength; i++ ){
-        this.memoryView[0x200 + i] = romFile[i];
+    if( typeof romFile === 'string' ){
+        for( var i = 0; i < romFile.length; i++ ){
+            this.memoryView[0x200 + i] = romFile.charCodeAt(i);
+        }
+    } else
+    {
+        for( var i = 0; i < romFile.byteLength; i++ ){
+            this.memoryView[0x200 + i] = romFile[i];
+        }
     }
     console.log('beginning emulation');
 

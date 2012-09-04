@@ -18,7 +18,9 @@ function canvasInit(){
 
 window.onload = function() {
     enableFileSelection();
+    populateDropdown();
     canvasInit();
+    chip8.setTimerRate(60);
 };
 
 //Maps keycodes (uppercase) to chip8 keys
@@ -49,7 +51,7 @@ document.onkeyup = function(evt){
     //check to see if we have this key mapped to a chip8 key
     var keycode = keyMap[key];
     if( keycode ){
-        chip8.keys[ keycode ] = 0x0;
+        chip8.keys[ keycode ] = false;
     }
 };
 
@@ -61,7 +63,7 @@ document.onkeydown = function(evt){
     //check to see if we have this key mapped to a chip8 key
     var keycode = keyMap[key];
     if( keycode ){
-        chip8.keys[ keycode ] = 0x1;
+        chip8.keys[ keycode ] = true;
         if( chip8.bWaitingForKey ){
             chip8.emulateCycleSecondHalf( keycode );
         }
@@ -128,6 +130,10 @@ function changeOff(){
 
 function changeTimeout(){
     chip8.timeout = parseInt( document.getElementById("txtTimeout").value );
+};
+
+function changeTimer(){
+    chip8.setTimerRate( parseInt( document.getElementById("txtTimer").value ) );
 };
 
 function pad(number, length) {

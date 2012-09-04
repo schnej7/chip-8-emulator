@@ -30,3 +30,15 @@ function handleFileSelect(evt) {
     fileReader.readAsArrayBuffer(file);
 };
 
+function populateDropdown(){
+    var gamesDropdown = document.getElementById('games');
+    for( var game in roms ){
+        var option = document.createElement('option');
+        option.text = game;
+        option.value = game;
+        gamesDropdown.add( option, null );
+    }
+    gamesDropdown.onchange = function(){
+        chip8.loadGame( atob( roms[gamesDropdown.value] ) );
+    };
+};

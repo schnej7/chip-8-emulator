@@ -8,6 +8,7 @@
         <script src='js/animate.js'></script>
         <script src='js/emulator.js'></script>
         <script src='js/fileHelper.js'></script>
+        <script src='js/roms.js'></script>
         <link href="css/bootstrap.css" rel="stylesheet" type="text/css">
         <link href="css/style.css" rel="stylesheet" type="text/css">
     </head>
@@ -86,7 +87,7 @@
                 </div>
                 <br />
                 <div class="row">
-                    <div class="offset2 span3">
+                    <div class="span3">
                         <div class="input-append">
                             <input class="span1" id="txtColorOn" size="3" type="text" value="FFF"><button class="btn" type="button" onclick="changeOn()">Change + color</button>
                         </div>
@@ -99,6 +100,11 @@
                     <div class="span3">
                         <div class="input-append">
                             <input class="span1" id="txtTimeout" size="3" type="text" value="0"><button class="btn" type="button" onclick="changeTimeout()">Change Timeout</button>
+                        </div>
+                    </div>
+                    <div class="span3">
+                        <div class="input-append">
+                            <input class="span1" id="txtTimer" size="3" type="text" value="60"><button class="btn" type="button" onclick="changeTimer()">Event Timers (Hz)</button>
                         </div>
                     </div>
                 </div>
@@ -118,6 +124,7 @@
                     </div>
                     <div class="span4">
                         <input type="file" id="files" name="file" />
+                        <select id="games"></select>
                     </div>
                 </div>
             </div>
