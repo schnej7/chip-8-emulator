@@ -63,7 +63,6 @@ document.onkeydown = function(evt){
     //check to see if we have this key mapped to a chip8 key
     var keycode = keyMap[key];
     if( keycode !== undefined ){
-	alert(keycode);
         chip8.keys[ keycode ] = true;
         if( chip8.bWaitingForKey ){
             chip8.emulateCycleSecondHalf( keycode );
