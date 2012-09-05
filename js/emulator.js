@@ -71,12 +71,10 @@ chip8.timeout = 0;
 // 0x000-0x1FF - Chip 8 interpreter (contains font set in emu)
 // 0x050-0x0A0 - Used for the built in 4x5 pixel font set (0-F)
 // 0x200-0xFFF - Program ROM and work RAM
-chip8.memory = new ArrayBuffer(4096);
-
-chip8.memoryView = new Uint8Array(chip8.memory, 0);
+chip8.memoryView = new Uint8Array(4096);
 
 //Registers
-chip8.V = [];
+chip8.V = new Uint8Array(16);
 
 //Index register (upper 4 bits are unused)
 chip8.I = 0;
@@ -92,12 +90,12 @@ chip8.delay_timer = 0;
 chip8.sound_timer = 0;
 
 //16 frame stack
-chip8.stack = [];
+chip8.stack = new Uint8Array(16);
 //Stack pointer
 chip8.sp = 0;
 
 //Key state
-chip8.keys = [];
+chip8.keys = new Uint8Array(16);
 
 //If the display was updated
 chip8.bDisplayUpdate = false;
@@ -247,18 +245,15 @@ chip8.decodeAndExecute = function( opcode ){
                 break;
 
                 case 0x0004:    // 8XY4: Adds VY to VX. VF is set to 1 when there's a carry, and to 0 when there isn't
-                    this.updateReg( (0x0F00 & opcode) >> 8, this.V[ (0x0F00 & opcode) >> 8 ] + this.V[ (0x00F0 & opcode) >> 4 ] );
-                    this.updateReg( 0xF, ( this.V[ (0x0F00 & opcode) >> 8 ] & 0x100 ) >> 8 );
-                    this.updateReg( (0x0F00 & opcode) >> 8, this.V[ (0x0F00 & opcode) >> 8 ] & 0x00FF );
+                    this.updateReg( 0xF, this.V[(0x0F00 & opcode) >> 8] + this.V[(0x00F0 & opcode) >> 4] > 0xFF ? 0x1 : 0x0 );
+                    this.updateReg( (0x0F00 & opcode) >> 8, this.V[(0x0F00 & opcode) >> 8] + this.V[(0x00F0 & opcode) >> 4] & 0xFF );
                     this.pc += 2;
                 break;
 
                 case 0x0005:    // 8XY5: VY is subtracted from VX. VF is set to 0 when there's a borrow, and 1 when there isn't
-                    this.updateReg( (0x0F00 & opcode) >> 8, this.V[ (0x0F00 & opcode) >> 8 ] + 0x100 );
-                    this.updateReg( (0x0F00 & opcode) >> 8, this.V[ (0x0F00 & opcode) >> 8 ] - this.V[ (0x00F0 & opcode) >> 4 ] );
-                    this.updateReg( 0xF, (this.V[ (0x0F00 & opcode) >> 8 ] & 0x100) >> 8 );
-                    this.updateReg( (0x0F00 & opcode) >> 8, this.V[ (0x0F00 & opcode) >> 8 ] & 0x00FF );
-                    this.pc += 2;
+                    this.updateReg( 0xF, this.V[(0x0F00 & opcode) >> 8] >= this.V[(0x00F0 & opcode) >> 4] ? 0x1 : 0x0 );
+                    this.updateReg( (0x0F00 & opcode) >> 8, this.V[(0x0F00 & opcode) >> 8] - this.V[(0x00F0 & opcode) >> 4] );
+					this.pc += 2;
                 break;
 
                 case 0x0006:    // 8XY6: Shifts VX right by one. VF is set to the value of the least significant bit of VX before the shift
@@ -268,15 +263,13 @@ chip8.decodeAndExecute = function( opcode ){
                 break;
 
                 case 0x0007:    // 8XY7: Sets VX to VY minus VX. VF is set to 0 when there's a borrow, and 1 when there isn't
-                    this.updateReg( (0x00F0 & opcode) >> 4, this.V[ (0x00F0 & opcode) >> 4 ] + 0x100 );
-                    this.updateReg( (0x0F00 & opcode) >> 8, this.V[ (0x00F0 & opcode) >> 4 ] - this.V[ (0x0F00 & opcode) >> 8 ] );
-                    this.updateReg( 0xF, (this.V[ (0x00F0 & opcode) >> 4 ] & 0x100) >> 8 );
-                    this.updateReg( (0x00F0 & opcode) >> 4, this.V[ (0x00F0 & opcode) >> 4 ] & 0x00FF );
+                    this.updateReg( 0xF, this.V[(0x00F0 & opcode) >> 4] >= this.V[(0x0F00 & opcode) >> 8] ? 0x1 : 0x0 );
+                    this.updateReg( (0x0F00 & opcode) >> 8, this.V[(0x00F0 & opcode) >> 4] - this.V[(0x0F00 & opcode) >> 8] );
                     this.pc += 2;
                 break;
 
                 case 0x000E:    // 8XYE: Shifts VX left by one. VF is set to the value of the most significant bit of VX before the shift
-                    this.updateReg( 0xF, this.V[ (0x0F00 & opcode) >> 8 ] & 0x80 );
+                    this.updateReg( 0xF, this.V[ (0x0F00 & opcode) >> 8 ] & 0x80 ? 0x1 : 0x0 );
                     this.updateReg( (0x0F00 & opcode) >> 8, this.V[ (0x0F00 & opcode) >> 8 ] << 1 );
                     this.pc += 2;
                 break;
