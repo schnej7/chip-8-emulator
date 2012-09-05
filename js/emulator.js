@@ -253,7 +253,7 @@ chip8.decodeAndExecute = function( opcode ){
                 case 0x0005:    // 8XY5: VY is subtracted from VX. VF is set to 0 when there's a borrow, and 1 when there isn't
                     this.updateReg( 0xF, this.V[(0x0F00 & opcode) >> 8] >= this.V[(0x00F0 & opcode) >> 4] ? 0x1 : 0x0 );
                     this.updateReg( (0x0F00 & opcode) >> 8, this.V[(0x0F00 & opcode) >> 8] - this.V[(0x00F0 & opcode) >> 4] );
-					this.pc += 2;
+                    this.pc += 2;
                 break;
 
                 case 0x0006:    // 8XY6: Shifts VX right by one. VF is set to the value of the least significant bit of VX before the shift
