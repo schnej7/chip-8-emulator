@@ -26,6 +26,7 @@ window.onload = function() {
 //Maps keycodes (uppercase) to chip8 keys
 //TODO: GUI to set keyMap
 var keyMap = {
+    88: 0x0,
     49: 0x1,
     50: 0x2,
     51: 0x3,
@@ -36,7 +37,6 @@ var keyMap = {
     83: 0x8,
     68: 0x9,
     90: 0xA,
-    88: 0x0,
     67: 0xB,
     52: 0xC,
     82: 0xD,
@@ -50,7 +50,7 @@ document.onkeyup = function(evt){
     if( key > 96 ) key -= 32;
     //check to see if we have this key mapped to a chip8 key
     var keycode = keyMap[key];
-    if( keycode ){
+    if( keycode !== undefined ){
         chip8.keys[ keycode ] = false;
     }
 };
@@ -62,7 +62,7 @@ document.onkeydown = function(evt){
     if( key > 96 ) key -= 32;
     //check to see if we have this key mapped to a chip8 key
     var keycode = keyMap[key];
-    if( keycode ){
+    if( keycode !== undefined ){
         chip8.keys[ keycode ] = true;
         if( chip8.bWaitingForKey ){
             chip8.emulateCycleSecondHalf( keycode );
