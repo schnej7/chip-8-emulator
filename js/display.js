@@ -22,7 +22,7 @@ function Display( width, height, pixelSize, polyfill ){
 		container.style.width = width * pixelSize + 'px';
 		container.style.height = height * pixelSize + 'px';
 		pixel.style.width = pixel.style.height = pixelSize + 'px';
-		pixel.style.float = 'left';
+		pixel.style.cssFloat = 'left';
 		for( var i = 0; i < length; i++ )
 			container.appendChild( pixel.cloneNode() );
 	} else {
