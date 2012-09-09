@@ -47,3 +47,44 @@ function DivDisplay( width, height, pixelSize ){
 	return api;
 };
 
+function CanvasDisplay( width, height, pixelSize ){
+	/* CONSTRUCTOR */
+	var api = this,
+		length = width * height,
+		container = document.createElement('canvas'),
+		context = container.getContext('2d'),
+		buffer = [],
+		colorMap = {
+			0: '#000',
+			1: '#FFF' };
+	container.width = width * pixelSize;
+	container.height = height * pixelSize;
+	/* PUBLIC VARIABLES AND FUNCTIONS */
+	api.colorMap = colorMap;
+	api.container = container;
+	api.fill = function( value ){
+		for( var i = 0; i < length; i++ )
+			buffer[i] = value;
+		return api;
+	};
+	api.flush = function(){
+		for( var y = 0, i = 0; y < height; y++ ){
+			for( var x = 0; x < width; x++, i++ ){
+				context.fillStyle = colorMap[ buffer[i] ];
+				context.fillRect(
+					x * pixelSize, y * pixelSize,
+					pixelSize, pixelSize );
+			}
+		}
+		return api;
+	};
+	api.setPixel = function( x, y, value ){
+		buffer[ y * width + x ] = value;
+		return api;
+	};
+	api.getPixel = function( x, y ){
+		return buffer[ y * width + x ];
+	};
+	return api;
+};
+
