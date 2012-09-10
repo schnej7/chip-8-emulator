@@ -153,7 +153,7 @@ chip8.decodeAndExecute = function( opcode ){
                         this.pixels[k] = false;
                     }
                     this.bDisplayUpdate = true;
-                    clearScreen();
+                    display.fill(0);
                     this.pc += 2;
                 break;
 
@@ -326,7 +326,7 @@ chip8.decodeAndExecute = function( opcode ){
                         var bit = !this.pixels[ pixelIndex ];
                         this.pixels[ pixelIndex ] = bit;
                         //update the display
-                        drawPixel((X + vline) % 64, (Y + hline) % 32, bit);
+                        display.setPixel((X + vline) % 64, (Y + hline) % 32, bit?1:0);
                         this.bDisplayUpdate = true;
                         //if the bit was reset, set VF
                         bit || (this.updateReg( 0xF, 1 ) );
@@ -447,12 +447,6 @@ chip8.decodeAndExecute = function( opcode ){
     }
 };
 
-chip8.fullRender = function(){
-    for( var i = 0; i < this.pixels.length; i++ ){
-        drawPixel( i % 64, Math.floor(i / 64), this.pixels[i]);
-    }
-};
-
 chip8.emulateCycle = function(){
     //Fetch opcode, instructions are 2 bytes long
     //TODO: opcode is a free variable, AKA global
@@ -504,6 +498,8 @@ chip8.updateTimers = function(){
             //TODO: Play a sound when timer is non-zero
         }
     }
+    //Flush display if needed
+    if( this.bDisplayUpdate ) display.flush();
 };
 
 chip8.setTimerRate = function(hz){
@@ -517,7 +513,7 @@ chip8.loadGame = function( romFile ){
     //Clear existing tick, memory, and screen
     clearTimeout( this.tick );
     this.memoryInit();
-    clearScreen();
+    display.fill(0).flush();
 
     //Load the game into memory
     if( typeof romFile === 'string' ){

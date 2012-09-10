@@ -13,8 +13,8 @@ function Display( width, height, pixelSize, polyfill ){
 		length = width * height,
 		buffer = [],
 		colorMap = {
-			0: '#000',
-			1: '#FFF' };
+			0: '#000000',
+			1: '#FFFFFF' };
 	if( polyfill ){
 		var container = document.createElement('div'),
 			pixel = document.createElement('div'),
@@ -57,11 +57,11 @@ function Display( width, height, pixelSize, polyfill ){
 			return api;
 		};
 	api.setPixel = function( x, y, value ){
-		buffer[ y * width + x ] = value;
+		buffer[ (y * width + x) % length ] = value;
 		return api;
 	};
 	api.getPixel = function( x, y ){
-		return buffer[ y * width + x ];
+		return buffer[ (y * width + x) % length ];
 	};
 	return api;
 };

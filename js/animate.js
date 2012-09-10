@@ -1,19 +1,13 @@
-//var canvas;
-var context;
-var colorOn = "#FFF";
-var colorOff = "#000";
+var display;
 
 function canvasInit(){
     console.log("starting");
-
-    //Initialize the canvas
-    var canvas = document.getElementById("myCanvas");
-    context = canvas.getContext("2d");
-
-    width = canvas.width;
-    height = canvas.height;
-
-    clearScreen();
+    //Initialize the Display
+    display = new Display( 64, 32, 12, !!CanvasRenderingContext2D );
+    // clear screen
+    display.fill(0).flush();
+    // add to the DOM
+    document.getElementById('viewport').appendChild( display.container );
 };
 
 window.onload = function() {
@@ -112,20 +106,14 @@ function step(){
     chip8.step();
 };
 
-var rsize = 12;
-function drawPixel( X, Y, value ){
-    context.fillStyle = value ? colorOn : colorOff;
-    context.fillRect( X*rsize, Y*rsize, rsize, rsize );
-};
-
 function changeOn(){
-    colorOn = '#' + pad( document.getElementById("txtColorOn").value, 3 );
-    chip8.fullRender();
+    display.colorMap[1] = '#' + pad( document.getElementById("txtColorOn").value, 3 );
+    display.flush();
 };
 
 function changeOff(){
-    colorOff = '#' + pad( document.getElementById("txtColorOff").value, 3 );
-    chip8.fullRender();
+    display.colorMap[0] = '#' + pad( document.getElementById("txtColorOff").value, 3 );
+    display.flush();
 };
 
 function changeTimeout(){
@@ -142,9 +130,4 @@ function pad(number, length) {
         str = '0' + str;
     }
     return str;
-};
-
-function clearScreen(){
-    context.fillStyle = colorOff;
-    context.fillRect( 0, 0, width, height );
 };
