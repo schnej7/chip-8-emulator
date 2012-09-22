@@ -8,7 +8,7 @@ function enableFileSelection(){
         alert('The File APIs are not fully supported in this browser.');
     }
 
-    document.getElementById('files').addEventListener('change', handleFileSelect, false);
+    document.getElementById('files').onchange = handleFileSelect;
 };
 
 function handleFileSelect(evt) {
