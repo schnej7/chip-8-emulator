@@ -71,10 +71,10 @@ chip8.timeout = 0;
 // 0x000-0x1FF - Chip 8 interpreter (contains font set in emu)
 // 0x050-0x0A0 - Used for the built in 4x5 pixel font set (0-F)
 // 0x200-0xFFF - Program ROM and work RAM
-chip8.memoryView = new Uint8Array(4096);
+chip8.memoryView = [];
 
 //Registers
-chip8.V = new Uint8Array(16);
+chip8.V = [];
 
 //Index register (upper 4 bits are unused)
 chip8.I = 0;
@@ -90,12 +90,12 @@ chip8.delay_timer = 0;
 chip8.sound_timer = 0;
 
 //16 frame stack
-chip8.stack = new Uint8Array(16);
+chip8.stack = [];
 //Stack pointer
 chip8.sp = 0;
 
 //Key state
-chip8.keys = new Uint8Array(16);
+chip8.keys = [];
 
 //If the display was updated
 chip8.bDisplayUpdate = false;
@@ -153,7 +153,7 @@ chip8.decodeAndExecute = function( opcode ){
                         this.pixels[k] = false;
                     }
                     this.bDisplayUpdate = true;
-                    display.fill(0);
+                    display.fill(0).flush();
                     this.pc += 2;
                 break;
 
@@ -245,14 +245,17 @@ chip8.decodeAndExecute = function( opcode ){
                 break;
 
                 case 0x0004:    // 8XY4: Adds VY to VX. VF is set to 1 when there's a carry, and to 0 when there isn't
-                    this.updateReg( 0xF, this.V[(0x0F00 & opcode) >> 8] + this.V[(0x00F0 & opcode) >> 4] > 0xFF ? 0x1 : 0x0 );
-                    this.updateReg( (0x0F00 & opcode) >> 8, this.V[(0x0F00 & opcode) >> 8] + this.V[(0x00F0 & opcode) >> 4] & 0xFF );
+                    this.updateReg( (0x0F00 & opcode) >> 8, this.V[ (0x0F00 & opcode) >> 8 ] + this.V[ (0x00F0 & opcode) >> 4 ] );
+                    this.updateReg( 0xF, ( this.V[ (0x0F00 & opcode) >> 8 ] & 0x100 ) >> 8 );
+                    this.updateReg( (0x0F00 & opcode) >> 8, this.V[ (0x0F00 & opcode) >> 8 ] & 0x00FF );
                     this.pc += 2;
                 break;
 
                 case 0x0005:    // 8XY5: VY is subtracted from VX. VF is set to 0 when there's a borrow, and 1 when there isn't
-                    this.updateReg( 0xF, this.V[(0x0F00 & opcode) >> 8] >= this.V[(0x00F0 & opcode) >> 4] ? 0x1 : 0x0 );
-                    this.updateReg( (0x0F00 & opcode) >> 8, this.V[(0x0F00 & opcode) >> 8] - this.V[(0x00F0 & opcode) >> 4] );
+                    this.updateReg( (0x0F00 & opcode) >> 8, this.V[ (0x0F00 & opcode) >> 8 ] + 0x100 );
+                    this.updateReg( (0x0F00 & opcode) >> 8, this.V[ (0x0F00 & opcode) >> 8 ] - this.V[ (0x00F0 & opcode) >> 4 ] );
+                    this.updateReg( 0xF, (this.V[ (0x0F00 & opcode) >> 8 ] & 0x100) >> 8 );
+                    this.updateReg( (0x0F00 & opcode) >> 8, this.V[ (0x0F00 & opcode) >> 8 ] & 0x00FF );
                     this.pc += 2;
                 break;
 
@@ -263,8 +266,10 @@ chip8.decodeAndExecute = function( opcode ){
                 break;
 
                 case 0x0007:    // 8XY7: Sets VX to VY minus VX. VF is set to 0 when there's a borrow, and 1 when there isn't
-                    this.updateReg( 0xF, this.V[(0x00F0 & opcode) >> 4] >= this.V[(0x0F00 & opcode) >> 8] ? 0x1 : 0x0 );
-                    this.updateReg( (0x0F00 & opcode) >> 8, this.V[(0x00F0 & opcode) >> 4] - this.V[(0x0F00 & opcode) >> 8] );
+                    this.updateReg( (0x00F0 & opcode) >> 4, this.V[ (0x00F0 & opcode) >> 4 ] + 0x100 );
+                    this.updateReg( (0x0F00 & opcode) >> 8, this.V[ (0x00F0 & opcode) >> 4 ] - this.V[ (0x0F00 & opcode) >> 8 ] );
+                    this.updateReg( 0xF, (this.V[ (0x00F0 & opcode) >> 4 ] & 0x100) >> 8 );
+                    this.updateReg( (0x00F0 & opcode) >> 4, this.V[ (0x00F0 & opcode) >> 4 ] & 0x00FF );
                     this.pc += 2;
                 break;
 
@@ -327,12 +332,12 @@ chip8.decodeAndExecute = function( opcode ){
                         this.pixels[ pixelIndex ] = bit;
                         //update the display
                         display.setPixel((X + vline) % 64, (Y + hline) % 32, bit?1:0);
-                        this.bDisplayUpdate = true;
                         //if the bit was reset, set VF
                         bit || (this.updateReg( 0xF, 1 ) );
                     }
                 }
             }
+            display.flush( X, Y, 8, spriteHeight );
             this.pc += 2;
         break;
 
@@ -498,8 +503,6 @@ chip8.updateTimers = function(){
             //TODO: Play a sound when timer is non-zero
         }
     }
-    //Flush display if needed
-    if( this.bDisplayUpdate ) display.flush();
 };
 
 chip8.setTimerRate = function(hz){
