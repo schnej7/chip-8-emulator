@@ -7,7 +7,7 @@ display.fill(0).flush();
 document.getElementById('screen').appendChild( display.container );
 */
 
-function Display( width, height, pixelSize, polyfill ){
+function Display( width, height, pixelSize, canvas ){
 	/* CONSTRUCTOR */
 	var api = this,
 		length = width * height,
@@ -15,14 +15,14 @@ function Display( width, height, pixelSize, polyfill ){
 		colorMap = {
 			0: '#000000',
 			1: '#FFFFFF' };
-	if( polyfill ){
+	if( !canvas ){
 		var container = document.createElement('div'),
 			pixel = document.createElement('div'),
 			pixels = container.childNodes;
 		container.style.width = width * pixelSize + 'px';
 		container.style.height = height * pixelSize + 'px';
 		pixel.style.width = pixel.style.height = pixelSize + 'px';
-		pixel.style.cssFloat = 'left';
+		pixel.style.cssFloat = pixel.style.styleFloat = 'left';
 		for( var i = 0; i < length; i++ )
 			container.appendChild( pixel.cloneNode() );
 	} else {
@@ -39,21 +39,34 @@ function Display( width, height, pixelSize, polyfill ){
 			buffer[i] = value;
 		return api;
 	};
-	api.flush = polyfill ?
-		function(){
+	api.flush = !canvas ?
+		function( _x, _y, w, h ){
+            var flushHeight = ( h + y ) || height;
+            var flushWidth = ( w + x ) || width;
+            for( var y = _y || 0; y < flushHeight; y++ ){
+                for( var x = _x || 0; x < flushWidth; x++ ){
+                    pixels[ y * width + x ].style.backgroundColor = colorMap[ buffer[ y * width + x ] ];
+                }
+            }
+			return api;
+            
+            /*
 			for( var i = 0; i < length; i++ )
 				pixels[i].style.backgroundColor = colorMap[ buffer[i] ];
 			return api;
+            */
 		} :
-		function(){
-			for( var y = 0, i = 0; y < height; y++ ){
-				for( var x = 0; x < width; x++, i++ ){
-					context.fillStyle = colorMap[ buffer[i] ];
-					context.fillRect(
-						x * pixelSize, y * pixelSize,
-						pixelSize, pixelSize );
-				}
-			}
+		function( _x, _y, w, h ){
+            var flushHeight = ( h + y ) || height;
+            var flushWidth = ( w + x ) || width;
+            for( var y = _y || 0; y < flushHeight; y++ ){
+                for( var x = _x || 0; x < flushWidth; x++ ){
+                    context.fillStyle = colorMap[ buffer[ y * width + x ] ];
+                    context.fillRect(
+                        x * pixelSize, y * pixelSize,
+                        pixelSize, pixelSize );
+                }
+            }
 			return api;
 		};
 	api.setPixel = function( x, y, value ){
