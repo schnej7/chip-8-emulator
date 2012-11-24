@@ -141,6 +141,38 @@ chip8.updateReg = function( reg, value ){
     }
 }
 
+chip8.opcodes = new Array()
+
+chip8.opcodes[0x0000] = {
+    sub: {
+        0x0000: function( em, opcode ){ // 0x00E0: clear the screen
+            //console.log("cls");
+            for( var k = 0; k < em.pixels.length; k++ ){
+                em.pixels[k] = false;
+            }
+            em.bDisplayUpdate = true;
+            display.fill(0).flush();
+            em.pc += 2;
+            return true;
+        },
+        0x000E: function( em ,opcode ){ // 0x00EE: return from a subroutine
+            //console.log("return from subroutine");
+            em.pc = em.stack[--em.sp] + 2;
+            return true;
+        }
+    },
+    exec: function( em, opcode ){
+        return this.sub[ opcode & 0x000F ]( em, opcode );
+    }
+}
+
+chip8.opcodes[0x1000] = { // 1NNN: jumps to address NNN
+    exec: function( em, opcode ){
+        em.pc = 0x0FFF & opcode;
+        return true;
+    }
+}
+
 chip8.decodeAndExecute = function( opcode ){
     switch( opcode & 0xF000 ){
 
@@ -462,7 +494,7 @@ chip8.emulateCycle = function(){
         console.log("memory[" + this.pc.toString(16) + "] === " + opcode.toString(16));
     }
     //Decode and execute opcode
-    this.decodeAndExecute( opcode );
+    !!this.opcodes[0xF000 & opcode] && this.opcodes[0xF000 & opcode].exec(this, opcode) || this.decodeAndExecute( opcode );
 
     if( !this.bWaitingForKey && !this.paused ){
         //Get input
