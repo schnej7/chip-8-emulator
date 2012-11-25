@@ -173,314 +173,285 @@ chip8.opcodes[0x1000] = { // 1NNN: jumps to address NNN
     }
 }
 
-chip8.decodeAndExecute = function( opcode ){
-    switch( opcode & 0xF000 ){
+chip8.opcodes[0x2000] = {
+    exec: function( em, opcode ){
+        em.stack[em.sp++] = em.pc;
+        em.pc = 0x0FFF & opcode;
+        return true;
+    }
+}
 
-        case 0x0000:    // 0---: more decoding
-            switch( opcode & 0x000F ){
+chip8.opcodes[0x3000] = {
+    exec: function( em, opcode ){
+        if( em.V[ (0x0F00 & opcode) >> 8 ] === (0x00FF & opcode) ){
+            em.pc += 4;
+        }
+        else{
+            em.pc += 2;
+        }
+        return true;
+    }
+}
 
-                case 0x0000:    // 0x00E0: clear the screen
-                    //console.log("cls");
-                    for( var k = 0; k < this.pixels.length; k++ ){
-                        this.pixels[k] = false;
-                    }
-                    this.bDisplayUpdate = true;
-                    display.fill(0).flush();
-                    this.pc += 2;
-                break;
+chip8.opcodes[0x4000] = {
+    exec: function( em, opcode ){
+        if( em.V[ (0x0F00 & opcode) >> 8 ] !== (0x00FF & opcode) ){
+            //console.log("skipped");
+            em.pc += 4;
+        }
+        else{
+            em.pc += 2;
+        }
+        return true;
+    }
+}
 
-                case 0x000E:    // 0x00EE: return from a subroutine
-                    //console.log("return from subroutine");
-                    this.pc = this.stack[--this.sp] + 2;
-                break;
+chip8.opcodes[0x5000] = {
+    exec: function( em, opcode ){
+        if( em.V[ (0x0F00 & opcode) >> 8 ] === em.V[ (0x00F0 & opcode) >> 4 ] ){
+            em.pc += 4;
+        }
+        else{
+            em.pc += 2;
+        }
+        return true;
+    }
+}
 
-                default:
-                    console.log("Unknown opcode: " + opcode.toString(16));
-            }
-        break;
+chip8.opcodes[0x6000] = {
+    exec: function( em, opcode ){
+        em.updateReg( (0x0F00 & opcode) >> 8, 0x00FF & opcode );
+        em.pc += 2;
+        return true;
+    }
+}
 
-        case 0x1000:    // 1NNN: Jumps to address NNN
-            //console.log("jump to " + (0x0FFF & opcode).toString(16));
-            this.pc = 0x0FFF & opcode;
-        break;
+chip8.opcodes[0x7000] = {
+    exec: function( em, opcode ){
+        em.updateReg( (0x0F00 & opcode) >> 8, (em.V[ (0x0F00 & opcode) >> 8 ] + (0x00FF & opcode)) & 0x00FF );
+        em.pc += 2;
+        return true;
+    }
+}
 
-        case 0x2000:    // 2NNN: Calls subroutine at address NNN
-            //console.log("call subroutine at " + (0x0FFF & opcode).toString(16));
-            this.stack[this.sp++] = this.pc;
-            this.pc = 0x0FFF & opcode;
-        break;
+chip8.opcodes[0x8000] = {
+    sub: {
+        0x0000: function( em, opcode ){
+            em.updateReg( (0x0F00 & opcode) >> 8, em.V[ (0x00F0 & opcode) >> 4 ] );
+            em.pc += 2;
+            return true;
+        },
+        0x0001: function( em, opcode ){
+            em.updateReg( (0x0F00 & opcode) >> 8, em.V[ (0x0F00 & opcode) >> 8 ] | em.V[ (0x00F0 & opcode) >> 4 ] );
+            em.pc += 2;
+            return true;
+        },
+        0x0002: function( em ,opcode ){
+            em.updateReg( (0x0F00 & opcode) >> 8, em.V[ (0x0F00 & opcode) >> 8 ] & em.V[ (0x00F0 & opcode) >> 4 ] );
+            em.pc += 2;
+            return true;
+        },
+        0x0003: function( em ,opcode ){
+            em.updateReg( (0x0F00 & opcode) >> 8, em.V[ (0x0F00 & opcode) >> 8 ] ^ em.V[ (0x00F0 & opcode) >> 4 ] );
+            em.pc += 2;
+            return true;
+        },
+        0x0004: function( em ,opcode ){
+            em.updateReg( (0x0F00 & opcode) >> 8, em.V[ (0x0F00 & opcode) >> 8 ] + em.V[ (0x00F0 & opcode) >> 4 ] );
+            em.updateReg( 0xF, ( em.V[ (0x0F00 & opcode) >> 8 ] & 0x100 ) >> 8 );
+            em.updateReg( (0x0F00 & opcode) >> 8, em.V[ (0x0F00 & opcode) >> 8 ] & 0x00FF );
+            em.pc += 2;
+            return true;
+        },
+        0x0005: function( em ,opcode ){
+            em.updateReg( (0x0F00 & opcode) >> 8, em.V[ (0x0F00 & opcode) >> 8 ] + 0x100 );
+            em.updateReg( (0x0F00 & opcode) >> 8, em.V[ (0x0F00 & opcode) >> 8 ] - em.V[ (0x00F0 & opcode) >> 4 ] );
+            em.updateReg( 0xF, (em.V[ (0x0F00 & opcode) >> 8 ] & 0x100) >> 8 );
+            em.updateReg( (0x0F00 & opcode) >> 8, em.V[ (0x0F00 & opcode) >> 8 ] & 0x00FF );
+            em.pc += 2;
+            return true;
+        },
+        0x0006: function( em ,opcode ){
+            em.updateReg( 0xF, em.V[ (0x0F00 & opcode) >> 8 ] & 0x1 );
+            em.updateReg( (0x0F00 & opcode) >> 8, em.V[ (0x0F00 & opcode) >> 8 ] >> 1 );
+            em.pc += 2;
+            return true;
+        },
+        0x0007: function( em ,opcode ){
+            em.updateReg( (0x00F0 & opcode) >> 4, em.V[ (0x00F0 & opcode) >> 4 ] + 0x100 );
+            em.updateReg( (0x0F00 & opcode) >> 8, em.V[ (0x00F0 & opcode) >> 4 ] - em.V[ (0x0F00 & opcode) >> 8 ] );
+            em.updateReg( 0xF, (em.V[ (0x00F0 & opcode) >> 4 ] & 0x100) >> 8 );
+            em.updateReg( (0x00F0 & opcode) >> 4, em.V[ (0x00F0 & opcode) >> 4 ] & 0x00FF );
+            em.pc += 2;
+            return true;
+        },
+        0x000E: function( em ,opcode ){
+            em.updateReg( 0xF, em.V[ (0x0F00 & opcode) >> 8 ] & 0x80 ? 0x1 : 0x0 );
+            em.updateReg( (0x0F00 & opcode) >> 8, em.V[ (0x0F00 & opcode) >> 8 ] << 1 );
+            em.pc += 2;
+            return true;
+        }
+    },
+    exec: function( em, opcode ){
+        return this.sub[0x000F & opcode]( em, opcode );
+    }
+}
 
-        case 0x3000:    // 3XNN: Skips the next instrouction if VX equals NN
-            //console.log("VX: " + V[ (0x0F00 & opcode) >> 8 ].toString(16) + "; NN: " + (0x00FF & opcode).toString(16) );
-            if( this.V[ (0x0F00 & opcode) >> 8 ] === (0x00FF & opcode) ){
-                this.pc += 4;
-            }
-            else{
-                this.pc += 2;
-            }
-        break;
+chip8.opcodes[0x9000] = {
+    exec: function( em, opcode ){
+        if( em.V[ (0x0F00 & opcode) >> 8 ] !== em.V[ (0x00F0 & opcode) >> 4 ] ){
+            em.pc += 4;
+        }
+        else{
+            em.pc += 2;
+        }
+        return true;
+    }
+}
 
-        case 0x4000:    // 4XNN: Skips the next instrouction if VX does not equal NN
-            //console.log("VX: " + V[ (0x0F00 & opcode) >> 8 ].toString(16) + "; NN: " + (0x00FF & opcode).toString(16) );
-            if( this.V[ (0x0F00 & opcode) >> 8 ] !== (0x00FF & opcode) ){
-                //console.log("skipped");
-                this.pc += 4;
-            }
-            else{
-                this.pc += 2;
-            }
-        break;
+chip8.opcodes[0xA000] = {
+    exec: function( em, opcode ){
+        em.I = opcode & 0x0FFF;
+        em.pc += 2;
+        return true;
+    }
+}
 
-        case 0x5000:    // 5XY0: Skips the next instrouction if VX equals VY
-            //console.log("VX: " + V[ (0x0F00 & opcode) >> 8 ].toString(16) + "; VY: " + V[ (0x00F0 & opcode) >> 4 ].toString(16) );
-            if( this.V[ (0x0F00 & opcode) >> 8 ] === this.V[ (0x00F0 & opcode) >> 4 ] ){
-                //console.log("skipped");
-                this.pc += 4;
-            }
-            else{
-                this.pc += 2;
-            }
-        break;
+chip8.opcodes[0xB000] = {
+    exec: function( em, opcode ){
+        em.pc = (opcode & 0x0FFF) + em.V[ 0 ];
+        return true;
+    }
+}
 
-        case 0x6000:    // 6XNN: Sets VX to NN
-            //console.log("VX = " + (0x00FF & opcode).toString(16) );
-            this.updateReg( (0x0F00 & opcode) >> 8, 0x00FF & opcode );
-            this.pc += 2;
-        break;
+chip8.opcodes[0xC000] = {
+    exec: function( em, opcode ){
+        em.updateReg( (0x0F00 & opcode) >> 8, ( Math.random() * 0x80 ) & ( opcode & 0x00FF ) );
+        em.pc += 2;
+        return true;
+    }
+}
 
-        case 0x7000:    // 7XNN: Adds NN to VX
-            //console.log("VX += " + (0x00FF & opcode).toString(16) );
-            this.updateReg( (0x0F00 & opcode) >> 8, (this.V[ (0x0F00 & opcode) >> 8 ] + (0x00FF & opcode)) & 0x00FF );
-            this.pc += 2;
-        break;
+chip8.opcodes[0xD000] = {
+    exec: function( em, opcode ){
+        var X = em.V[(opcode & 0x0F00) >> 8];
+        var Y = em.V[(opcode & 0x00F0) >> 4];
+        var spriteHeight = opcode & 0x000F;
 
-        case 0x8000:    // 8---: more decoding
-            switch( opcode & 0x000F ){
-                case 0x0000:    // 8XY0: Sets VX to the value of VY
-                    this.updateReg( (0x0F00 & opcode) >> 8, this.V[ (0x00F0 & opcode) >> 4 ] );
-                    this.pc += 2;
-                break;
-
-                case 0x0001:    // 8XY1: Sets VX to VX | VY
-                    this.updateReg( (0x0F00 & opcode) >> 8, this.V[ (0x0F00 & opcode) >> 8 ] | this.V[ (0x00F0 & opcode) >> 4 ] );
-                    this.pc += 2;
-                break;
-
-                case 0x0002:    // 8XY2: Sets VX to VX & VY
-                    this.updateReg( (0x0F00 & opcode) >> 8, this.V[ (0x0F00 & opcode) >> 8 ] & this.V[ (0x00F0 & opcode) >> 4 ] );
-                    this.pc += 2;
-                break;
-
-                case 0x0003:    // 8XY3: Sets VX to VX XOR VY
-                    this.updateReg( (0x0F00 & opcode) >> 8, this.V[ (0x0F00 & opcode) >> 8 ] ^ this.V[ (0x00F0 & opcode) >> 4 ] );
-                    this.pc += 2;
-                break;
-
-                case 0x0004:    // 8XY4: Adds VY to VX. VF is set to 1 when there's a carry, and to 0 when there isn't
-                    this.updateReg( (0x0F00 & opcode) >> 8, this.V[ (0x0F00 & opcode) >> 8 ] + this.V[ (0x00F0 & opcode) >> 4 ] );
-                    this.updateReg( 0xF, ( this.V[ (0x0F00 & opcode) >> 8 ] & 0x100 ) >> 8 );
-                    this.updateReg( (0x0F00 & opcode) >> 8, this.V[ (0x0F00 & opcode) >> 8 ] & 0x00FF );
-                    this.pc += 2;
-                break;
-
-                case 0x0005:    // 8XY5: VY is subtracted from VX. VF is set to 0 when there's a borrow, and 1 when there isn't
-                    this.updateReg( (0x0F00 & opcode) >> 8, this.V[ (0x0F00 & opcode) >> 8 ] + 0x100 );
-                    this.updateReg( (0x0F00 & opcode) >> 8, this.V[ (0x0F00 & opcode) >> 8 ] - this.V[ (0x00F0 & opcode) >> 4 ] );
-                    this.updateReg( 0xF, (this.V[ (0x0F00 & opcode) >> 8 ] & 0x100) >> 8 );
-                    this.updateReg( (0x0F00 & opcode) >> 8, this.V[ (0x0F00 & opcode) >> 8 ] & 0x00FF );
-                    this.pc += 2;
-                break;
-
-                case 0x0006:    // 8XY6: Shifts VX right by one. VF is set to the value of the least significant bit of VX before the shift
-                    this.updateReg( 0xF, this.V[ (0x0F00 & opcode) >> 8 ] & 0x1 );
-                    this.updateReg( (0x0F00 & opcode) >> 8, this.V[ (0x0F00 & opcode) >> 8 ] >> 1 );
-                    this.pc += 2;
-                break;
-
-                case 0x0007:    // 8XY7: Sets VX to VY minus VX. VF is set to 0 when there's a borrow, and 1 when there isn't
-                    this.updateReg( (0x00F0 & opcode) >> 4, this.V[ (0x00F0 & opcode) >> 4 ] + 0x100 );
-                    this.updateReg( (0x0F00 & opcode) >> 8, this.V[ (0x00F0 & opcode) >> 4 ] - this.V[ (0x0F00 & opcode) >> 8 ] );
-                    this.updateReg( 0xF, (this.V[ (0x00F0 & opcode) >> 4 ] & 0x100) >> 8 );
-                    this.updateReg( (0x00F0 & opcode) >> 4, this.V[ (0x00F0 & opcode) >> 4 ] & 0x00FF );
-                    this.pc += 2;
-                break;
-
-                case 0x000E:    // 8XYE: Shifts VX left by one. VF is set to the value of the most significant bit of VX before the shift
-                    this.updateReg( 0xF, this.V[ (0x0F00 & opcode) >> 8 ] & 0x80 ? 0x1 : 0x0 );
-                    this.updateReg( (0x0F00 & opcode) >> 8, this.V[ (0x0F00 & opcode) >> 8 ] << 1 );
-                    this.pc += 2;
-                break;
-
-                default:
-                    console.log("Unknown opcode: " + opcode.toString(16));
-            }
-        break;
-
-        case 0x9000:    // Skips the next instruction if VX doesn't equal VY
-            //console.log("VX: " + V[ (0x0F00 & opcode) >> 8 ].toString(16) + "; VY: " + V[ (0x00F0 & opcode) >> 4 ].toString(16) );
-            if( this.V[ (0x0F00 & opcode) >> 8 ] !== this.V[ (0x00F0 & opcode) >> 4 ] ){
-                //console.log("skipped");
-                this.pc += 4;
-            }
-            else{
-                this.pc += 2;
-            }
-        break;
-
-        case 0xA000:    // ANNN: sets I to the address NNN
-            //console.log("I = " + ( opcode & 0x0FFF ).toString(16) );
-            this.I = opcode & 0x0FFF;
-            this.pc += 2;
-        break;
-
-        case 0xB000:    // BNNN: Jumps to the address NNN plus V0
-            //console.log("jump " + ( (opcode & 0x0FFF) + V[0] ).toString(16) );
-            this.pc = (opcode & 0x0FFF) + this.V[ 0 ];
-        break;
-
-        case 0xC000:    // CXNN: Sets VX to a random number & NN
-            this.updateReg( (0x0F00 & opcode) >> 8, ( Math.random() * 0x80 ) & ( opcode & 0x00FF ) );
-            this.pc += 2;
-        break;
-
-        case 0xD000:    // DXYN: Draws a sprite at coordinate (VX, VY) that has a width of 8 pixels and a height of N pixels.
-                        //       Each row of 8 pixels is read as bit-coded (with the most significant bit of each byte displayed on the left) starting from memory location I;
-                        //       I value doesn't change after the execution of this instruction. 
-                        //       As described above, VF is set to 1 if any screen pixels are flipped from set to unset when the sprite is drawn, and to 0 if that doesn't happen.
-            //console.log("Draw");
-            var X = this.V[(opcode & 0x0F00) >> 8];
-            var Y = this.V[(opcode & 0x00F0) >> 4];
-            var spriteHeight = opcode & 0x000F;
-
-            this.updateReg( 0xF, 0 );
-            for( var hline = 0; hline < spriteHeight; hline++ ){
-                var spriteRow = this.memoryView[ this.I + hline ];
-                for( var vline = 0; vline < 8; vline++ ){
-                    //If the sprite specifies a difference at this pixel
-                    if( spriteRow & (0x80 >> vline) ){
-                        var pixelIndex = ((Y + hline) * 64) %( 64*32 ) + (X + vline) % 64;
-                        //flip the bit
-                        var bit = !this.pixels[ pixelIndex ];
-                        this.pixels[ pixelIndex ] = bit;
-                        //update the display
-                        display.setPixel((X + vline) % 64, (Y + hline) % 32, bit?1:0);
-                        //if the bit was reset, set VF
-                        bit || (this.updateReg( 0xF, 1 ) );
-                    }
+        em.updateReg( 0xF, 0 );
+        for( var hline = 0; hline < spriteHeight; hline++ ){
+            var spriteRow = em.memoryView[ em.I + hline ];
+            for( var vline = 0; vline < 8; vline++ ){
+                //If the sprite specifies a difference at this pixel
+                if( spriteRow & (0x80 >> vline) ){
+                    var pixelIndex = ((Y + hline) * 64) %( 64*32 ) + (X + vline) % 64;
+                    //flip the bit
+                    var bit = !em.pixels[ pixelIndex ];
+                    em.pixels[ pixelIndex ] = bit;
+                    //update the display
+                    display.setPixel((X + vline) % 64, (Y + hline) % 32, bit?1:0);
+                    //if the bit was reset, set VF
+                    bit || (em.updateReg( 0xF, 1 ) );
                 }
             }
-            display.flush( X, Y, 8, spriteHeight );
-            this.pc += 2;
-        break;
+        }
+        display.flush( X, Y, 8, spriteHeight );
+        em.pc += 2;
+        return true;
+    }
+}
 
-        case 0xE000:    // E---: more decoding
-            switch( opcode & 0x00FF ){
-
-                case 0x009E:    // EX9E: Skips the next instruction if the key stored in VX is pressed
-                    if( this.keys[ this.V[ (opcode & 0x0F00) >> 8 ] ] ){
-                        //console.log("key " + V[ (opcode & 0x0F00) >> 8 ].toString(16) + " stored: skip");
-                        this.pc += 4;
-                    }
-                    else{
-                        this.pc += 2;
-                    }
-                break;
-
-                case 0x00A1:    // EXA1: Skips the next instruction if the key stored in VX isn't pressed
-                    if( !this.keys[ this.V[ (opcode & 0x0F00) >> 8 ] ] ){
-                        //console.log("key " + V[ (opcode & 0x0F00) >> 8 ].toString(16) + " not stored: skip");
-                        this.pc += 4;
-                    }
-                    else{
-                        this.pc += 2;
-                    }
-                break;
-
-                default:
-                    console.log("Unknown opcode: " + opcode.toString(16));
+chip8.opcodes[0xE000] = {
+    sub: {
+        0x009E: function( em, opcode ){
+            if( em.keys[ em.V[ (opcode & 0x0F00) >> 8 ] ] ){
+                em.pc += 4;
             }
-        break;
-
-        case 0xF000:    // F000: more decoding
-            switch( opcode & 0x00FF ){
-
-                case 0x0007:    // FX07: Sets VX to the value of the delay timer
-                    this.updateReg( (0x0F00 & opcode) >> 8, this.delay_timer );
-                    this.pc += 2;
-                break;
-
-                case 0x000A:    // FX0A: A key press is awaited, and then stored in VX
-                    this.bWaitingForKey = true;
-                break;
-
-                case 0x0015:    // FX15: Sets the delay timer to VX
-                    //console.log("delay_timer = VX");
-                    this.delay_timer = this.V[ (0x0F00 & opcode) >> 8 ];
-                    this.pc += 2;
-                break;
-
-                case 0x0018:    // FX19: Sets the sound timer to VX
-                    //console.log("sound_timer = VX");
-                    this.sound_timer = this.V[ (0x0F00 & opcode) >> 8 ];
-                    this.pc += 2;
-                break;
-
-                case 0x001E:    // FX1E: Adds VX to I
-                    //console.log("I = I + VX");
-                    this.I += this.V[ (0x0F00 & opcode) >> 8 ];
-                    if( this.I & 0xF000 ){
-                        this.updateReg( 0xF, 1 );
-                    }
-                    else{
-                        this.updateReg( 0xF, 0 );
-                    }
-                    this.I = this.I & 0x0FFF;
-                    this.pc += 2;
-                break;
-
-                case 0x0029:    // FX29: Sets I to the location of the sprite for the character in VX. Characters 0-F (in hexadecimal) are represented by a 4x5 font
-                    //console.log("I = char location");
-                    this.I = 0x50 + ( this.V[ (0x0F00 & opcode) >> 8 ] * 5 );
-                    this.pc += 2;
-                break;
-
-                case 0x0033:    // FX33: Stores the Binary-coded decimal representation of VX, with 
-                                //       the most significant of three digits at the address in I, 
-                                //       the middle digit at I plus 1, 
-                                //       and the least significant digit at I plus 2
-                    //console.log("Store each decimal");
-                    var VX = this.V[(opcode & 0x0F00) >> 8]
-                    this.memoryView[this.I]     = Math.floor( VX / 100);
-                    this.memoryView[this.I + 1] = Math.floor( VX / 10) % 10;
-                    this.memoryView[this.I + 2] = VX % 10;
-                    this.pc += 2;
-                break;
-
-                case 0x0055:    // FX55: Stores V0 to VX in memory starting at address I
-                    //console.log("store all registers in memory");
-                    X = (opcode & 0x0F00) >> 8;
-                    for( var i = 0; i <= X; i++ ){
-                        this.memoryView[this.I+i] = this.V[i];
-                    }
-                    this.pc += 2;
-                break;
-
-                case 0x0065:    // FX65: Fills V0 to VX with values from memory starting at address I
-                    //console.log("get all registers from memory");
-                    X = (opcode & 0x0F00) >> 8;
-                    for( var i = 0; i <= X; i++ ){
-                        this.updateReg( i, this.memoryView[this.I+i] );
-                    }
-                    this.pc += 2;
-                break;
-
-                default:
-                    console.log("Unknown opcode: " + opcode.toString(16));
+            else{
+                em.pc += 2;
             }
-        break;
+            return true;
+        },
+        0x00A1: function( em, opcode ){
+            if( !em.keys[ em.V[ (opcode & 0x0F00) >> 8 ] ] ){
+                em.pc += 4;
+            }
+            else{
+                em.pc += 2;
+            }
+            return true;
+        }
+    },
+    exec: function( em, opcode ){
+        return this.sub[ 0x00FF & opcode ]( em, opcode );
+    }
+}
 
-        default:
-            console.log("Unknown opcode: " + opcode.toString(16));
+chip8.opcodes[0xF000] = {
+    sub: {
+        0x0007: function( em, opcode ){
+            em.updateReg( (0x0F00 & opcode) >> 8, em.delay_timer );
+            em.pc += 2;
+            return true;
+        },
+        0x000A: function( em, opcode ){
+            em.bWaitingForKey = true;
+            return true;
+        },
+        0x0015: function( em, opcode ){
+            em.delay_timer = em.V[ (0x0F00 & opcode) >> 8 ];
+            em.pc += 2;
+            return true;
+        },
+        0x0018: function( em, opcode ){
+            em.sound_timer = em.V[ (0x0F00 & opcode) >> 8 ];
+            em.pc += 2;
+            return true;
+        },
+        0x001E: function( em, opcode ){
+            em.I += em.V[ (0x0F00 & opcode) >> 8 ];
+            if( em.I & 0xF000 ){
+                em.updateReg( 0xF, 1 );
+            }
+            else{
+                em.updateReg( 0xF, 0 );
+            }
+            em.I = em.I & 0x0FFF;
+            em.pc += 2;
+            return true;
+        },
+        0x0029: function( em, opcode ){
+            em.I = 0x50 + ( em.V[ (0x0F00 & opcode) >> 8 ] * 5 );
+            em.pc += 2;
+            return true;
+        },
+        0x0033: function( em, opcode ){
+            var VX = em.V[(opcode & 0x0F00) >> 8]
+            em.memoryView[em.I]     = Math.floor( VX / 100);
+            em.memoryView[em.I + 1] = Math.floor( VX / 10) % 10;
+            em.memoryView[em.I + 2] = VX % 10;
+            em.pc += 2;
+            return true;
+        },
+        0x0055: function( em, opcode ){
+            X = (opcode & 0x0F00) >> 8;
+            for( var i = 0; i <= X; i++ ){
+                em.memoryView[em.I+i] = em.V[i];
+            }
+            em.pc += 2;
+            return true;
+        },
+        0x0065: function( em, opcode ){
+            X = (opcode & 0x0F00) >> 8;
+            for( var i = 0; i <= X; i++ ){
+                em.updateReg( i, em.memoryView[em.I+i] );
+            }
+            em.pc += 2;
+            return true;
+        },
+    },
+    exec: function( em, opcode ){
+        return this.sub[ 0x00FF & opcode ]( em, opcode );
     }
 };
 
@@ -494,7 +465,7 @@ chip8.emulateCycle = function(){
         console.log("memory[" + this.pc.toString(16) + "] === " + opcode.toString(16));
     }
     //Decode and execute opcode
-    !!this.opcodes[0xF000 & opcode] && this.opcodes[0xF000 & opcode].exec(this, opcode) || this.decodeAndExecute( opcode );
+    !!this.opcodes[0xF000 & opcode] && this.opcodes[0xF000 & opcode].exec(this, opcode) || console.log("Unknown Opcode! " + opcode.toString(16));
 
     if( !this.bWaitingForKey && !this.paused ){
         //Get input
